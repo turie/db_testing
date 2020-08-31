@@ -1,0 +1,30 @@
+---
+
+# Sample for site specific data
+
+# site:                'site_name'
+# type:                'mso'
+# instance:            '001'
+
+na:
+   controller_name:  'cluster1'
+
+volumes:
+   mso:
+      cinder00:
+         size:          '1'
+      cinder01:
+         size:          '1'
+      nova:
+         size:          '1'
+      backup:
+         size:          '1'
+   data_center:
+      vmware_datastore00:
+         size:          '1'
+      vmware_datastore01:
+         size:          '1'
+      nova:
+         size:          '200'
+      backup:
+         size:          '300'

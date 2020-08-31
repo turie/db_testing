@@ -1,0 +1,56 @@
+---
+
+- name: "execute volume provision"
+  na_ontap_volume:
+    # hostname:         "{{ controllers[controller_name']['mgmt_ip'] }}"
+    # username:         "{{ controllers[controller_name']['username'] }}"
+    # password:         "{{ controllers[controller_name']['password'] }}"
+    hostname:         "{{ hostname }}"
+    username:         "{{ username }}"
+    password:         "{{ password }}"
+    https:            true
+    validate_certs:   false
+
+    name:                      "{{ name }}"
+    vserver:                   "{{ vserver }}"
+    http_port:                 "{{ http_port                  | default('443') }}"
+
+    state:                     "{{ state                      | default('present') }}"
+    is_online:                 "{{ is_online                  | default('yes') }}"
+
+    aggr_list:                 "{{ aggr_list                  | default(omit) }}"
+    aggr_list_multiplier:      "{{ aggr_list_multiplier       | default(omit) }}"
+    aggregate_name:            "{{ aggregate_name             | default(omit) }}"
+    atime_update:              "{{ atime_update               | default(omit) }}"
+    auto_provision_as:         "{{ auto_provision_as          | default(omit) }}"
+    comment:                   "{{ comment                    | default(omit) }}"
+    efficiency_policy:         "{{ efficiency_policy          | default(omit) }}"
+    encrypt:                   "{{ encrypt                    | default(omit) }}"
+    from_name:                 "{{ from_name                  | default(omit) }}"
+    is_infinite:               "{{ is_infinite                | default(omit) }}"
+    junction_path:             "{{ junction_path              | default(omit) }}"
+    language:                  "{{ language                   | default(omit) }}"
+    nvfail_enabled:            "{{ nvfail_enabled             | default(omit) }}"
+    percent_snapshot_space:    "{{ percent_snapshot_space     | default(omit) }}"
+    policy:                    "{{ policy                     | default(omit) }}"
+    qos_adaptive_policy_group: "{{ qos_adaptive_policy_group  | default(omit) }}"
+    qos_policy_group:          "{{ qos_policy_group           | default(omit) }}"
+    size:                      "{{ size                       | default(omit) }}"
+    size_unit:                 "{{ size_unit                  | default(omit) }}"
+    snapdir_access:            "{{ snapdir_access             | default(omit) }}"
+    snapshot_policy:           "{{ snapshot_policy            | default(omit) }}"
+    space_guarantee:           "{{ space_guarantee            | default(omit) }}"
+    space_slo:                 "{{ space_slo                  | default(omit) }}"
+    tiering_policy:            "{{ tiering_policy             | default(omit) }}"
+    time_out:                  "{{ time_out                   | default(omit) }}"
+    type:                      "{{ type                       | default(omit) }}"
+    unix_permissions:          "{{ unix_permissions           | default(omit) }}"
+    volume_security_style:     "{{ volume_security_style      | default(omit) }}"
+    vserver_dr_protection:     "{{ vserver_dr_protection      | default(omit) }}"
+    wait_for_completion:       "{{ wait_for_completion        | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:      role_result
+

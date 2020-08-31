@@ -1,0 +1,28 @@
+---
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+
+-  name: 'provision broadcast domain'
+   na_ontap_broadcast_domain:
+      hostname:         "{{ controllers[loop_arg['controller_name']]['mgmt_ip'] }}"
+      username:         "{{ controllers[loop_arg['controller_name']]['username'] }}"
+      password:         "{{ controllers[loop_arg['controller_name']]['password'] }}"
+      https:            true
+      validate_certs:   false
+
+      name:             "{{ loop_arg['name'] }}"
+      state:            "{{ loop_arg['state']    | default('present') }}"
+
+      from_name:        "{{ loop_arg['from_name']            | default(omit) }}"
+      ipspace:          "{{ loop_arg['ipspace']              | default(omit) }}"
+      mtu:              "{{ loop_arg['mtu']                  | default(omit) }}"
+      ports:            "{{ loop_arg['ports']                | default(omit) }}"
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:      role_result
+   when:
+      -  mode != 'test'

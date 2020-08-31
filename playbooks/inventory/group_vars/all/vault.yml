@@ -1,0 +1,18 @@
+---
+#--------------------------------------------------------------------
+# Each cluster provisioned must have an entry in the 
+# vault['clusters'] dictionary.  The name used for the cluster
+# MUST match all other references (i.e. that found in the site specific
+# file under playbooks/vars and in 
+# playbooks/inventory/group_vars/all/clusters.yml)
+#
+# This file is can be encrypted using ansible's vault encryption
+# and when running the playbook you specific 'ask password' on the CLI
+# so that Ansible can decrypt the file.
+#--------------------------------------------------------------------
+vault:
+  clusters:
+    cluster1:
+      username:      'admin'
+      password:      'Netapp1!'
+         

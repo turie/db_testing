@@ -1,0 +1,30 @@
+---
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+
+-  name: 'provision ifgrps'
+   na_ontap_net_ifgrp:
+      hostname:         "{{ controllers[loop_arg['controller_name']]['mgmt_ip'] }}"
+      username:         "{{ controllers[loop_arg['controller_name']]['username'] }}"
+      password:         "{{ controllers[loop_arg['controller_name']]['password'] }}"
+      https:            true
+      validate_certs:   false
+
+      name:                      "{{ loop_arg['name'] }}"
+      node:                      "{{ loop_arg['node'] }}"
+
+      state:                     "{{ loop_arg['state']                  | default('present') }}"
+
+      distribution_function:     "{{ loop_arg['distribution_function']  | default(omit) }}"
+      mode:                      "{{ loop_arg['mode']                   | default(omit) }}"
+      ports:                     "{{ loop_arg['ports']                  | default(omit) }}"
+   register:   role_result
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:      loop_arg
+   when:
+      -  mode != 'test'
+

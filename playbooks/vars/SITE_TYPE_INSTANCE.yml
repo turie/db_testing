@@ -1,0 +1,36 @@
+---
+
+# Sample for site specific data
+
+# type:                'mso|data_center'
+# site:                'site_name'
+# instance:            '001'
+
+na:
+   controller_name:  'na_controller'
+   #mgmt_ip:          '10.0.1.10'
+
+volumes:
+   mso:      
+      vmware_datastore00:
+         size:          '8-96'
+      vmware_datastore01:
+         size:          '8-96'
+      cinder00:
+         size:          '8-96'
+      cinder01:
+         size:          '8-96'
+      nova:
+         size:          '2-48'
+      backup:
+         size:          '2-48'
+         
+   data_center:    
+      vmware_datastore00:
+         size:          '8-96'
+      vmware_datastore01:
+         size:          '8-96'
+      nova:
+         size:          '200'
+      backup:
+         size:          '100'

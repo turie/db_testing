@@ -1,0 +1,23 @@
+---
+
+#---------------------------------------------------------------
+# Validation of the request is mainly to detect an issue with
+# the upstream code so once it works, it should be good so we
+# will default to no validation to avoid slowing things down
+# all the time.
+#---------------------------------------------------------------
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+# -  name: 'validate request'
+#    include_tasks: validate.yml
+#    when:
+#       -  request['validate'] | default(True)
+#       -  mode != 'test'
+
+-  name: 'execute request'
+   include_tasks: execute.yml
+   when:
+      -  mode != 'test'

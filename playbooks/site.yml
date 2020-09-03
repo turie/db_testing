@@ -4,48 +4,17 @@
   hosts:         localhost
   gather_facts:  no
 
-  # For development - expected pass as extra_vars
-  vars:
-    site: 'site'
-    site_type: 'mso'
-    site_instance: '001'
-    hostname: '172.16.132.200'
-    username: 'admin'
-    password: 'Netapp1!'
-
-    raw_service_request:  
-      service: 'nfs_base'
-      operation: 'create'
-      std_name:  'nas_standard'
-      req_details:
-        ontap_volume:
-          - name: 'vol01'
-            vserver: 'svm1'
-            aggregate_name: 'aggr1'
-            size: '1'
-            space_guarantee: 'volume'
-          - name: 'vol02'
-            vserver: 'svm1'
-            aggregate_name: 'aggr1'
-            size: '1'
-            size_unit: 'tb'
-        ontap_qtree:
-          - name: 'qtree1'
-            vserver: 'svm1'
-            flexvol_name: 'vol01'
-          - name: 'qtree1'
-            vserver: 'svm1'
-            flexvol_name: 'vol02'
+  
 
 
   tasks:
-    # Check values needed as Asseertions.  These should be defined in passed extra_vars
-    - name:    'verify required inputs'
-      assert:
-        that:
-          -  site                is defined
-          -  site_type           is defined
-          -  site_instance       is defined
+    # # Check values needed as Asseertions.  These should be defined in passed extra_vars
+    # - name:    'verify required inputs'
+    #   assert:
+    #     that:
+    #       -  site                is defined
+    #       -  site_type           is defined
+    #       -  site_instance       is defined
 
     - name: 'Save initial request details'
       set_fact:
@@ -77,6 +46,9 @@
       loop:     "{{ raw_service_request.req_details.keys() }}"    
       loop_control:
         loop_var:     loop_res_type
+      
+    - debug:
+        var:  global_completed_request
 
     - name:    'execute each of the provisioning roles'
       include_role:
@@ -84,7 +56,7 @@
         public:     no
       vars:
         args:       "{{ global_completed_request[loop_resource] }}" 
-        mode:       "test"
+        mode:       "notest"
       loop:          "{{ services[raw_service_request.service][raw_service_request.operation]['microservices'] }}"  
       loop_control:
         loop_var:   loop_resource

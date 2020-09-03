@@ -12,7 +12,7 @@
 #--------------------------------------------------------------------
 vault:
   clusters:
-    cluster1:
+    Cluster01:
       username:      'admin'
       password:      'Netapp1!'
          

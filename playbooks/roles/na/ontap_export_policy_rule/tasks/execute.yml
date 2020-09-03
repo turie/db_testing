@@ -1,0 +1,36 @@
+---
+
+-  name: "execute export policy provision"
+
+   na_ontap_export_policy:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      vserver:                  "{{ loop_arg['vserver'] }}"
+      name:                     "{{ loop_arg['name'] }}"
+      http_port:                "{{ loop_arg['http_port']                  | default('443') }}"
+      state:                    "{{ loop_arg['state']                      | default('present') }}"
+      
+      
+      ro_rule:                         "{{ loop_arg['ro_rule']             | default(omit) }}"   #required, getting from logic above?  Moved to cfg.yml
+      rw_rule:                         "{{ loop_arg['rw_rule']             | default(omit) }}"   #required, getting from logic above?  moved to cfg.yml
+      client_match:                    "{{ loop_arg['client_match']        | default(omit) }}"   #required, getting from logic above?  moved to site.yml
+      allow_suid:                      "{{ loop_arg['allow_suid']          | default(omit) }}"
+      http_port:                       "{{ loop_arg['http_port']           | default(omit) }}"
+      ontapi:                          "{{ loop_arg['ontapi']              | default(omit) }}"
+      protocol:                        "{{ loop_arg['protocol']            | default(omit) }}"
+      rule_index:                      "{{ loop_arg['rule_index']          | default(omit) }}"
+      super_user_security:             "{{ loop_arg['super_user_security'] | default(omit) }}"
+      use_rest:                        "{{ loop_arg['use_rest']            | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+     loop_var:   loop_arg
+   register:      role_result
+
+      
+   

@@ -14,6 +14,8 @@ services:
       microservices:
         - ontap_volume
         - ontap_qtree
+        - ontap_quotas
+        - ontap_qos_policy_group
       defaults:
         ontap_volume:
           snapshot_policy:        'default'
@@ -21,17 +23,30 @@ services:
           volume_security_style:  'unix'
           unix_permissions:       '775'
           efficiency_policy:      'default'
-          space_guarantee:        'none'  
+          space_guarantee:        'none'
+          #junction_path:          "/{{name}}"  #Go here or will this be delivered in payload
         ontap_qtree:
           security_style:         'mixed'
           state:                  'present'
+        ontap_quotas:
+          type:                   'user'
+        ontap_qos_policy_group: {}
+        ontap_export_policy_rule:
+            ro_rule:                  'none'
+            rw_rule:                  'none'
+        ontap_export_policy:  {}
+
       standards:
         nas_standard:
           ontap_volume:
             size_unit:            'gb'
           ontap_qtree:
             oplocks:              'disabled'
-
+          ontap_quotas:
+            type:                   'user'
+          ontap_qos_policy_group: {}
+          ontap_export_policy_rule: {}
+          ontap_export_policy:  {}
     read:
       microservices:
         - ontap_volume

@@ -1,0 +1,27 @@
+---
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+
+-  name: 'provision vlan'
+   na_ontap_net_vlan:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      node:             "{{ loop_arg['node'] }}"
+      parent_interface: "{{ loop_arg['parent_interface'] }}"
+      vlanid:           "{{ loop_arg['vlandid']  }}"
+
+      state:            "{{ loop_arg['state']    | default('present') }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:   role_result
+

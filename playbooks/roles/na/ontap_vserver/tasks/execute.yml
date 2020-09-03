@@ -1,0 +1,36 @@
+---
+
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+
+-  name: "execute vserver provision"
+   na_ontap_svm:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      
+      https:            true
+      validate_certs:   false
+
+      name:                "{{ loop_arg['name'] }}"
+      state:               "{{ loop_arg['state']                | default('present') }}"
+
+      aggr_list:                    "{{ loop_arg['aggr_list']                  | default(omit) }}"
+      allowed_protocols:            "{{ loop_arg['allowed_protocols']          | default(omit) }}"
+      comment:                      "{{ loop_arg['comment']                    | default(omit) }}"
+      from_name:                    "{{ loop_arg['from_name']                  | default(omit) }}"
+      ipspace:                      "{{ loop_arg['ipspace']                    | default(omit) }}"
+      language:                     "{{ loop_arg['language']                   | default(omit) }}"
+      root_volume:                  "{{ loop_arg['root_volume']                | default(omit) }}"
+      root_volume_aggregate:        "{{ loop_arg['root_volume_aggregate']      | default(omit) }}"
+      root_volume_security_style:   "{{ loop_arg['root_volume_security_style'] | default(omit) }}"
+      snapshot_policy:              "{{ loop_arg['snapshot_policy']            | default(omit) }}"
+      subtype:                      "{{ loop_arg['subtype']                    | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:   role_result

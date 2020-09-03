@@ -1,2 +1,9 @@
 ---
-# tasks file for na/ontap_net_broadcast_ports
+
+- name: 'show args'
+  include_tasks: test.yml
+  when: mode == 'test'
+
+- name: 'execute the request'
+  include_tasks: execute.yml
+  when: mode != 'test'

@@ -2,12 +2,10 @@
 
 -  name: "execute volume provision"
    na_ontap_volume:
-      # hostname:         "{{ controllers[loop_arg['controller_name']]['mgmt_ip'] }}"
-      # username:         "{{ controllers[loop_arg['controller_name']]['username'] }}"
-      # password:         "{{ controllers[loop_arg['controller_name']]['password'] }}"
-      hostname:         "{{ hostname }}"
-      username:         "{{ username }}"
-      password:         "{{ password }}"
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      
       https:            true
       validate_certs:   false
 

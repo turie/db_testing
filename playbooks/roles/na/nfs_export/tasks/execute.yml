@@ -2,9 +2,9 @@
 
 -  name: 'provision export policy'
    na_ontap_export_policy:
-      hostname:         "{{ controllers[loop_policy['controller_name']]['mgmt_ip'] }}"
-      username:         "{{ controllers[loop_policy['controller_name']]['username'] }}"
-      password:         "{{ controllers[loop_policy['controller_name']]['password'] }}"
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
       https:            true
       validate_certs:   false
 
@@ -16,9 +16,9 @@
 
 -  name: 'provision export rules'
    na_ontap_export_policy_rule:
-      hostname:         "{{ controllers[loop_rule['controller_name']]['mgmt_ip'] }}"
-      username:         "{{ controllers[loop_rule['controller_name']]['username'] }}"
-      password:         "{{ controllers[loop_rule['controller_name']]['password'] }}"
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
       https:            true
       validate_certs:   false
 
@@ -35,9 +35,9 @@
 
 -  name: 'apply policy to volume'
    na_ontap_volume:
-      hostname:         "{{ controllers[loop_vol['controller_name']]['mgmt_ip'] }}"
-      username:         "{{ controllers[loop_vol['controller_name']]['username'] }}"
-      password:         "{{ controllers[loop_vol['controller_name']]['password'] }}"
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
       https:            true
       validate_certs:   false
 

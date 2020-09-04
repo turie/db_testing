@@ -308,7 +308,7 @@ function volume() {
 
       $vols = invoke-MySqlQuery -query $vol_select -user root -password $mysql_pw
       if ( $vols[0] -ge 1 ){
-         $old_idx       = $vols[1].vol_name).split("_")[2]
+         $old_idx       = ($vols[1].vol_name -replace $($vserver_name + "vol_data_"), '').split('_')[0]
          $new_idx       = "{0:d3}" -f ( [int]$old_idx + 1 )
       }
       else{
@@ -379,11 +379,11 @@ function qtree() {
    if ( $qtrees[0] -ge 1 ){
       $old_idx    = $qtrees[1].qtree_name).split('_')[2]
       $new_idx    = "{0:d3}" -f ( ([int]$old_idx + 1 )
-      $qtree_name = $qtrees[1].qtree_name -replace, $old_idx, $new_idx
    }
    else{
-      $qtree_name = $service + '_' + $environment + '_001'
+      $new_idx = '001'
    }
+   $qtree_name = $qtrees[1].qtree_name -replace, $old_idx, $new_idx
 
    return @{
       'success'      = $True;

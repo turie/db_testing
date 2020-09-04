@@ -35,6 +35,7 @@ my %cluster_service = (
    },
 );
 ###################################### MAIN ##################################
+
 my $contact;
 my $location;
 my $cost_centre;
@@ -63,6 +64,8 @@ GetOptions(
   'service=s'         => \$service,
 );
 
+my $wfa_util = WFAUtil->new();
+
 my $placement_solution = {
   'success'           => 'TRUE',
   'reason'            => 'successfully determined a placement solution',
@@ -75,6 +78,8 @@ my $placement_solution = {
   }
 };
 
+$playground_pw = $wfa_util->getWfaWorkflowParameter('playground_pw');
+
 if ( ! exists($cluster_service[$service]) ){
    $wfa_util->sendLog('INFO', 'invalid service requested: ' + $service);
    $placement_solution->{'success'}  = $FALSE;
@@ -82,8 +87,6 @@ if ( ! exists($cluster_service[$service]) ){
    add_return_vals($placement_solution, $wfa_util);
    exit(0);
 }
-
-my $wfa_util = WFAUtil->new();
 
 my $placement_solution{'std_name'} = $cluster_service{$service}->{'std_name'};
 
@@ -346,8 +349,12 @@ sub volume {
       $new_vol_reqd = $TRUE;
    }
    else{
+      #--------------------------------------------------------------------
+      # For some absolutely unknown reason, the WFA 5.1 Perl interpreter
+      # seems to think the '%' in the sprintf() below is an illegal char
+      #--------------------------------------------------------------------
       my @vol_name_flds = split('_', $vol_name_regex);
-      $new_idx = sprintf("%03s", $vol_name_flds[3] + 1);
+      $new_idx = sprintf("\%03s", $vol_name_flds[3] + 1);
    }
    $vol_name =~ s/\[0\-9\]\{3\}/$new_idx/;
 
@@ -402,7 +409,7 @@ my $qtree_name;
     $qtree_name = $service . '_' . $environment . '_' . '001';
   }
   else{
-    $qtree_name = sprintf("%s_%s_%03s", 
+    $qtree_name = sprintf("\%s_\%s_\%03s", 
       $service,
       $environment,
       (split( '_', $rows[0][0]))[2]+1;

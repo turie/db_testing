@@ -1,0 +1,28 @@
+---
+
+-  name: 'validate the base args'
+   assert:
+      that:
+         -  args['controller_name'] is defined
+         -  args['policy_name']     is defined
+         -  args['rules']           is defined
+         -  args['vol_name']        is defined
+   register:   role_result
+
+-  name: 'validate each rule'
+   assert:
+      that:
+         -  rule['client_match']          is defined
+         -  rule['protocol']              is defined
+         -  rule['ro_rule']               is defined
+         -  rule['rw_rule']               is defined
+         -  rule['super_user_security']   is defined
+         -  rule['client_match']          | type_debug == 'list'
+         -  rule['protocol']              | type_debug == 'list'
+         -  rule['ro_rule']               | type_debug == 'list'
+         -  rule['rw_rule']               | type_debug == 'list'
+         -  rule['super_user_security']   | type_debug == 'list'
+   loop: "{{ args['rules'] }}"
+   loop_control:
+      loop_var:   rule
+      

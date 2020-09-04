@@ -1,0 +1,24 @@
+---
+-  debug:
+      var:  args
+
+-  name: 'show export policies'
+   debug:
+      msg:  "{{ loop_policy }}"
+   loop:    "{{ args['policies'] }}"
+   loop_control:
+      loop_var:   loop_policy
+
+-  name: 'show export rules'
+   debug:
+      msg:  "{{ loop_rules }}"
+   loop:    "{{ args['rules'] }}"
+   loop_control:
+      loop_var:   loop_rules
+
+-  name: 'show export vols'
+   debug:
+      msg:  "{{ loop_vols }}"
+   loop:    "{{ args['volumes'] }}"
+   loop_control:
+      loop_var:   loop_vols

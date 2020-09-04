@@ -1,0 +1,36 @@
+---
+
+-  name: "execute ontap_quotas"
+
+   na_ontap_quotas:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+     
+      volume:                    "{{ loop_arg['volume'] }}"
+      vserver:                   "{{ loop_arg['vserver'] }}"
+      quota_target:              "{{ loop_arg['quota_target'] }}"
+      type:                      "{{ loop_arg['type'] }}"
+      http_port:                 "{{ loop_arg['http_port']                           | default('443') }}"
+      state:                     "{{ loop_arg['state']                               | default('present') }}"
+
+      disk_limit:              "{{ loop_arg['disk_limit']                | default(omit) }}"
+      file_limit:              "{{ loop_arg['file_limit']                | default(omit) }}"
+      ontapi:                  "{{ loop_arg['ontapi']                    | default(omit) }}"
+      policy:                  "{{ loop_arg['policy']                    | default(omit) }}"
+      qtree:                   "{{ loop_arg['qtree']                     | default(omit) }}"
+      set_quota_status:        "{{ loop_arg['set_quota_status']          | default(omit) }}"
+      threshold:               "{{ loop_arg['threshold']                 | default(omit) }}"
+      use_rest:                 "{{ loop_arg['use_rest']                 | default(omit) }}"
+
+
+   loop:    "{{ args }}"
+   loop_control:
+    loop_var:   loop_arg
+   register:      role_result
+
+
+      

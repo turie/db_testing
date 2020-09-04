@@ -1,0 +1,54 @@
+---
+
+-  name: "execute volume provision"
+   na_ontap_volume:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      
+      https:            true
+      validate_certs:   false
+
+      name:                      "{{ loop_arg['name'] }}"
+      vserver:                   "{{ loop_arg['vserver'] }}"
+      http_port:                 "{{ loop_arg['http_port']                  | default('443') }}"
+
+      state:                     "{{ loop_arg['state']                      | default('present') }}"
+      is_online:                 "{{ loop_arg['is_online']                  | default('yes') }}"
+
+      aggr_list:                 "{{ loop_arg['aggr_list']                  | default(omit) }}"
+      aggr_list_multiplier:      "{{ loop_arg['aggr_list_multiplier']       | default(omit) }}"
+      aggregate_name:            "{{ loop_arg['aggregate_name']             | default(omit) }}"
+      atime_update:              "{{ loop_arg['atime_update']               | default(omit) }}"
+      auto_provision_as:         "{{ loop_arg['auto_provision_as']          | default(omit) }}"
+      comment:                   "{{ loop_arg['comment']                    | default(omit) }}"
+      efficiency_policy:         "{{ loop_arg['efficiency_policy']          | default(omit) }}"
+      encrypt:                   "{{ loop_arg['encrypt']                    | default(omit) }}"
+      from_name:                 "{{ loop_arg['from_name']                  | default(omit) }}"
+      is_infinite:               "{{ loop_arg['is_infinite']                | default(omit) }}"
+      junction_path:             "{{ loop_arg['junction_path']              | default(omit) }}"
+      language:                  "{{ loop_arg['language']                   | default(omit) }}"
+      nvfail_enabled:            "{{ loop_arg['nvfail_enabled']             | default(omit) }}"
+      percent_snapshot_space:    "{{ loop_arg['percent_snapshot_space']     | default(omit) }}"
+      policy:                    "{{ loop_arg['policy']                     | default(omit) }}"
+      qos_adaptive_policy_group: "{{ loop_arg['qos_adaptive_policy_group']  | default(omit) }}"
+      qos_policy_group:          "{{ loop_arg['qos_policy_group']           | default(omit) }}"
+      size:                      "{{ loop_arg['size']                       | default(omit) }}"
+      size_unit:                 "{{ loop_arg['size_unit']                  | default(omit) }}"
+      snapdir_access:            "{{ loop_arg['snapdir_access']             | default(omit) }}"
+      snapshot_policy:           "{{ loop_arg['snapshot_policy']            | default(omit) }}"
+      space_guarantee:           "{{ loop_arg['space_guarantee']            | default(omit) }}"
+      space_slo:                 "{{ loop_arg['space_slo']                  | default(omit) }}"
+      tiering_policy:            "{{ loop_arg['tiering_policy']             | default(omit) }}"
+      time_out:                  "{{ loop_arg['time_out']                   | default(omit) }}"
+      type:                      "{{ loop_arg['type']                       | default(omit) }}"
+      unix_permissions:          "{{ loop_arg['unix_permissions']           | default(omit) }}"
+      volume_security_style:     "{{ loop_arg['volume_security_style']      | default(omit) }}"
+      vserver_dr_protection:     "{{ loop_arg['vserver_dr_protection']      | default(omit) }}"
+      wait_for_completion:       "{{ loop_arg['wait_for_completion']        | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:      role_result
+

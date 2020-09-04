@@ -1,0 +1,24 @@
+---
+
+
+-  name: 'provision broadcast domain'
+   na_ontap_broadcast_domain:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      name:             "{{ loop_arg['name'] }}"
+      state:            "{{ loop_arg['state']    | default('present') }}"
+
+      from_name:        "{{ loop_arg['from_name']            | default(omit) }}"
+      ipspace:          "{{ loop_arg['ipspace']              | default(omit) }}"
+      mtu:              "{{ loop_arg['mtu']                  | default(omit) }}"
+      ports:            "{{ loop_arg['ports']                | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:      role_result

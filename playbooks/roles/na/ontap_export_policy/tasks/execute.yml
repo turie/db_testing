@@ -1,0 +1,26 @@
+---
+
+-  name: "execute export policy provision"
+
+   na_ontap_export_policy:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      vserver:                  "{{ loop_arg['vserver'] }}"
+      name:                     "{{ loop_arg['name'] }}"
+      http_port:                "{{ loop_arg['http_port']                  | default('443') }}"
+      state:                    "{{ loop_arg['state']                      | default('present') }}"
+     
+      from_name:                 "{{ loop_arg['from_name']                 | default(omit) }}"
+      ontapi:                    "{{ loop_arg['ontapi']                    | default(omit) }}"
+      use_rest:                  "{{ loop_arg['use_rest']                  | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+     loop_var:   loop_arg
+   register:      role_result      
+ 

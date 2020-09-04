@@ -1,0 +1,28 @@
+---
+
+-  name: "execute na_ontap_qos_policy_group"
+
+   na_ontap_qos_policy_group:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      name:                     "{{ loop_arg['name'] }}"
+      vserver:                  "{{ loop_arg['vserver'] }}"
+      http_port:                "{{ loop_arg['http_port']                       | default('443') }}"
+      state:                    "{{ loop_arg['state']                           | default('present') }}"
+
+      force:                      "{{ loop_arg['force']                           | default(omit) }}"
+      from_name:                  "{{ loop_arg['from_name']                       | default(omit) }}"
+      max_throughput:             "{{ loop_arg['max_throughput']                  | default(omit) }}"
+      min_throughput:             "{{ loop_arg['min_throughput']                  | default(omit) }}"
+      ontapi:                     "{{ loop_arg['ontapi']                          | default(omit) }}"
+      use_rest:                   "{{ loop_arg['use_rest']                        | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+     loop_var:   loop_arg
+   register:      role_result

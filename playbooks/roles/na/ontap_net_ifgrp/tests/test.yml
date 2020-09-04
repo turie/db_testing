@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - playbooks/roles/na/ontap_net_ifgrp

@@ -1,0 +1,30 @@
+---
+ 
+- name: "execute ontap_qtree provision"
+ 
+  na_ontap_qtree:
+    hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+    username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+    password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+    https:            true
+    validate_certs:   false
+
+    vserver:                  "{{ loop_arg['vserver'] }}"
+    name:                     "{{ loop_arg['name'] }}"
+    flexvol_name:             "{{ loop_arg['flexvol_name'] }}"  #Required when State=present!!
+    http_port:                "{{ loop_arg['http_port']                  | default('443') }}"
+    state:                    "{{ loop_arg['state']                   | default('present') }}"
+    
+    export_policy:            "{{ loop_arg['export_policy']                      | default(omit) }}"
+    from_name:                "{{ loop_arg['from_name']                          | default(omit) }}"
+    ontapi:                   "{{ loop_arg['ontapi']                             | default(omit) }}"
+    oplocks:                  "{{ loop_arg['oplocks']                            | default(omit) }}"
+    security_style:           "{{ loop_arg['security_style']                     | default(omit) }}"
+    unix_permissions:         "{{ loop_arg['unix_permissions']                   | default(omit) }}"
+    use_rest:                 "{{ loop_arg['use_rest']                           | default(omit) }}"
+    
+  loop:    "{{ args }}"
+  loop_control:
+    loop_var:   loop_arg
+  register:      role_result

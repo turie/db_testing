@@ -1,0 +1,25 @@
+---
+
+##############################################################################################################
+#  This Role function is to add NetApp object "standardized" values to the passed extra_vars payload
+#  If key/value is defined in extra_vars, set_standards role WILL override values
+##############################################################################################################
+
+- name: 'Initialize temporary list for building combined standards payload'
+  set_fact:
+    temp: []
+
+- name:  'Combine Standards to extra_vars payload'
+  set_fact:
+    temp:   "{{ temp + [ resources[idx] | combine( services[service][operation]['standards'][std_name][res_type] ) ]  }}"
+  loop:    "{{ resources }}"
+  loop_control:
+    loop_var:   loop_resource
+    index_var:  idx
+
+- name: 'Merge combined standards to global_completed_request'
+  set_fact:
+    global_completed_request:  "{{ global_completed_request | combine( { res_type: temp } ) }}"
+
+
+  

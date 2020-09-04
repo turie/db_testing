@@ -1,0 +1,36 @@
+---
+
+-  name: 'provision aggrs'
+   na_ontap_aggregate:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      name:             "{{ loop_arg['name'] }}"
+
+      state:            "{{ loop_arg['state']                | default('present') }}"
+
+      disk_count:       "{{ loop_arg['disk_count']           | default(omit) }}"
+      disk_size:        "{{ loop_arg['disk_size']            | default(omit) }}"
+      disk_type:        "{{ loop_arg['disk_type']            | default(omit) }}"
+      disks:            "{{ loop_arg['disks']                | default(omit) }}"
+      mirror_disks:     "{{ loop_arg['mirror_disks']         | default(omit) }}"
+
+      from_name:        "{{ loop_arg['from_name']            | default(omit) }}"
+      is_mirrored:      "{{ loop_arg['is_mirrored']          | default(omit) }}"
+
+      nodes:            "{{ loop_arg['nodes']                | default(omit) }}"
+      raid_size:        "{{ loop_arg['raid_size']            | default(omit) }}"
+      raid_type:        "{{ loop_arg['raid_type']            | default(omit) }}"
+      service_state:    "{{ loop_arg['service_state']        | default(omit) }}"
+      time_out:         "{{ loop_arg['time_out']             | default(omit) }}"
+      unmount_volumes:  "{{ loop_arg['unmount_volumes']      | default(omit) }}"
+      wait_for_online:  "{{ loop_arg['wait_for_online']      | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg
+   register:   role_result

@@ -1,0 +1,49 @@
+---
+
+-  name: 'provision export policy'
+   na_ontap_export_policy:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      https:            true
+      validate_certs:   false
+
+      vserver:          "{{ loop_policy.vserver }}"
+      name:             "{{ loop_policy.name }}"
+   loop:    "{{ args['policies'] }}"
+   loop_control:
+      loop_var:   loop_policy
+
+-  name: 'provision export rules'
+   na_ontap_export_policy_rule:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      https:            true
+      validate_certs:   false
+
+      vserver:                "{{ loop_rule.vserver }}"
+      client_match:           "{{ loop_rule.client_match          | join(',') }}"
+      protocol:               "{{ loop_rule.protocol              | join(',')}}"
+      ro_rule:                "{{ loop_rule.ro_rule               | join(',')}}"
+      rw_rule:                "{{ loop_rule.rw_rule               | join(',')}}"
+      super_user_security:    "{{ loop_rule.super_user_security   | join(',')}}"
+      policy_name:            "{{ loop_rule.policy_name }}"
+   loop:    "{{ args.rules }}"
+   loop_control:
+      loop_var:      loop_rule
+
+-  name: 'apply policy to volume'
+   na_ontap_volume:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+      https:            true
+      validate_certs:   false
+
+      vserver:                "{{ loop_vol.vserver }}"
+      name:                   "{{ loop_vol.vol_name }}"
+      policy:                 "{{ loop_vol.policy_name }}"
+   loop:    "{{ args['volumes'] }}"
+   loop_control:
+      loop_var:      loop_vol

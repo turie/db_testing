@@ -1,0 +1,32 @@
+---
+
+-  name: 'show args'
+   include_tasks: test.yml
+   when:
+      -  mode == 'test'
+
+
+
+-  name:       'set volume autosize attributes'
+   na_ontap_volume_autosize:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      volume:                             "{{ loop_arg['vol_name'] }}"
+      vserver:                            "{{ loop_arg['vserver'] }}"
+
+      grow_threshold_percent:             "{{ loop_arg['grow_threshold_percent']     | default(omit) }}"
+      increment_size:                     "{{ loop_arg['increment_size']             | default(omit) }}"
+      maximum_size:                       "{{ loop_arg['maximum_size']               | default(omit) }}"
+      minimum_size:                       "{{ loop_arg['minimum_size']               | default(omit) }}"
+      mode:                               "{{ loop_arg['mode']                       | default(omit) }}"
+      reset:                              "{{ loop_arg['reset']                      | default(omit) }}"
+      shrink_threshold_percent:           "{{ loop_arg['shrink_threshold_percent']   | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:   loop_arg

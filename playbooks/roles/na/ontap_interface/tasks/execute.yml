@@ -1,0 +1,37 @@
+---
+
+
+
+-  name: 'provision lif'
+   na_ontap_interface:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      interface_name:            "{{ loop_arg['interface_name'] }}"
+      vserver:                   "{{ loop_arg['vserver']  }}"
+      role:                      "{{ loop_arg['role']                       | default('data') }}"
+      state:                     "{{ loop_arg['state']    | default('present') }}"
+
+      address:                   "{{ loop_arg['address']           | default(omit) }}"
+      admin_status:              "{{ loop_arg['admin_status']      | default(omit)}}"
+      dns_domain_name:           "{{ loop_arg['dns_domain_name']   | default(omit) }}"
+      failover_policy:           "{{ loop_arg['failover_policy']   | default(omit) }}"
+      firewall_policy:           "{{ loop_arg['filewall_policy']   | default(omit) }}"
+      force_subnet_association:  "{{ loop_arg['force_subnet_association']   | default(omit) }}"
+      home_node:                 "{{ loop_arg['home_node']                  | default(omit) }}"
+      home_port:                 "{{ loop_arg['home_port']                  | default(omit) }}"
+      is_auto_revert:            "{{ loop_arg['is_auto_revert']             | default(omit) }}"
+      is_dns_update_enabled:     "{{ loop_arg['is_dns_update_enabled']      | default(omit) }}"
+      listen_for_dns_query:      "{{ loop_arg['listen_for_dns_query']       | default(omit) }}"
+      netmask:                   "{{ loop_arg['netmask']                    | default(omit) }}"
+      protocols:                 "{{ loop_arg['protocols']                  | default(omit) }}"
+      subnet_name:               "{{ loop_arg['subnet_name']                | default(omit) }}"
+
+   loop: "{{ args }}"
+   loop_control:
+      loop_var:      loop_arg
+   register:   role_result

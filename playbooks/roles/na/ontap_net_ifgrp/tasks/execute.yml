@@ -1,0 +1,24 @@
+---
+
+-  name: 'provision ifgrps'
+   na_ontap_net_ifgrp:
+      hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+      username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
+      password:         "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+      https:            true
+      validate_certs:   false
+
+      name:                      "{{ loop_arg['name'] }}"
+      node:                      "{{ loop_arg['node'] }}"
+
+      state:                     "{{ loop_arg['state']                  | default('present') }}"
+
+      distribution_function:     "{{ loop_arg['distribution_function']  | default(omit) }}"
+      mode:                      "{{ loop_arg['mode']                   | default(omit) }}"
+      ports:                     "{{ loop_arg['ports']                  | default(omit) }}"
+
+   loop:    "{{ args }}"
+   loop_control:
+      loop_var:      loop_arg
+   register:   role_result

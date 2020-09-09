@@ -26,9 +26,6 @@
       loop_control:
         loop_var:     loop_res_type
 
-
-    - meta: end_play
-
     - name: 'Add Default values to provisioning request payload'
       include_role:
         name:     "na/set_defaults"
@@ -41,6 +38,8 @@
       loop:     "{{ raw_service_request.req_details.keys() | list }}"    
       loop_control:
         loop_var:     loop_res_type
+
+    - meta: end_play
 
     - name: 'Enforce provisioning standards on request payload'
       include_role:

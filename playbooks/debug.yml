@@ -4,7 +4,7 @@
   hosts:         all
   gather_facts:  no
   environment:
-    PYTHONPATH:   "{{ lookup('env', 'PYTHONPATH') }}:/Users/todd.urie/OneDrive - NetApp Inc/Documents/Projects/active/DB/repo/playbookslibrary"
+    PYTHONPATH:   "{{ lookup('env', 'PYTHONPATH') }}:playbooks/library"
 
   tasks:
     # # Check values needed as Asseertions.  These should be defined in passed extra_vars

@@ -60,8 +60,6 @@
     - debug:
         var:  global_completed_request
 
-    - meta: end_play
-
     - name:    'execute each of the provisioning roles'
       include_role:
         name:       "na/{{ loop_resource }}"

@@ -11,7 +11,7 @@
 
 - name:  'Combine defaults to passed extra_vars payload'
   set_fact:
-    temp:   "{{ temp + [ services[service][operation]['defaults'][res_type] | combine( resources[idx] ) ]  }}"
+    temp:   "{{ temp + [ services[service][operation]['defaults'][res_type] | combine( loop_resource ) ]  }}"
   loop:    "{{ resources }}"
   loop_control:
     loop_var:   loop_resource

@@ -15,6 +15,9 @@
     #       -  site_type           is defined
     #       -  site_instance       is defined
 
+    - include_vars:
+      - inventory/group_vars/all/cfg.yml
+
     - name: 'Save initial request details'
       set_fact:
         global_completed_request:  "{{ raw_service_request['req_details'] }}"

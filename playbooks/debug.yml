@@ -1,0 +1,77 @@
+---
+
+- name:          'Entry point for Cluster Provisioning'
+  hosts:         all
+  gather_facts:  no
+  environment:
+    PYTHONPATH:   "{{ lookup('env', 'PYTHONPATH') }}:/Users/todd.urie/OneDrive - NetApp Inc/Documents/Projects/active/DB/repo/playbookslibrary"
+
+  tasks:
+    # # Check values needed as Asseertions.  These should be defined in passed extra_vars
+    # - name:    'verify required inputs'
+    #   assert:
+    #     that:
+    #       -  site                is defined
+    #       -  site_type           is defined
+    #       -  site_instance       is defined
+
+    - name: 'Save initial request details'
+      set_fact:
+        global_completed_request:  "{{ raw_service_request['req_details'] }}"
+
+    - name: 'Add Default values to provisioning request payload'
+      debug:
+        var:    loop_res_type
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+
+
+    - meta: end_play
+
+    - name: 'Add Default values to provisioning request payload'
+      include_role:
+        name:     "na/set_defaults"
+      vars:
+        mode: 'notest'
+        res_type:   "{{ loop_res_type }}"
+        service:    "{{ raw_service_request['service'] }}"
+        operation:  "{{ raw_service_request['operation'] }}"
+        resources:  "{{ raw_service_request['req_details'][loop_res_type] }}"
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+
+    - name: 'Enforce provisioning standards on request payload'
+      include_role:
+        name:     "na/set_standards"
+      vars:
+        mode: 'notest'
+        res_type:   "{{ loop_res_type }}"
+        service:    "{{ raw_service_request['service'] }}"
+        operation:         "{{ raw_service_request['operation'] }}"
+        std_name:   "{{ raw_service_request['std_name'] }}"
+        resources:  "{{ global_completed_request[loop_res_type] }}"
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+      
+    - debug:
+        var:  global_completed_request
+
+    - name:    'execute each of the provisioning roles'
+      include_role:
+        name:       "na/{{ loop_resource }}"
+        public:     no
+      vars:
+        args:       "{{ global_completed_request[loop_resource] }}" 
+        mode:       "notest"
+      loop:          "{{ services[raw_service_request.service][raw_service_request.operation]['microservices'] }}"  
+      loop_control:
+        loop_var:   loop_resource
+      register:      role_result
+      ignore_errors:    true
+      # when:
+      #   - loop_resource | regex_search(types_regex)
+
+

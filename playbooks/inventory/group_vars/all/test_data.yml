@@ -1,0 +1,26 @@
+---
+
+raw_service_request:
+  req_details:
+    ontap_aggr:
+    - hostname:               HWVABCMNASDEV001
+      name:                   aggr1
+      disk_count:             16
+      nodes:                  HWVABCMNASDEV001-01
+      wait_for_online:        true
+    ontap_vserver:
+    - hostname:               HWVABCMNASDEV001
+      name:                   db01
+      root_volume:            db01_root
+      root_volume_aggregate:  aggr1
+    ontap_volume:
+    - hostname:         HWVABCMNASDEV001
+      name:             voltest01
+      vserver:          db01
+      aggregate_name:   aggr1
+      size:             1
+      size_unit:        gb
+      space_guarantee:  none
+  service:              nfs_base
+  operation:            create
+  std_name:             nas_standard

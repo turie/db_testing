@@ -1,11 +1,10 @@
 ---
 
 - name:          'Entry point for Cluster Provisioning'
-  hosts:         localhost
+  hosts:         all
   gather_facts:  no
-
-  
-
+  environment:
+    PYTHONPATH:   "{{ lookup('env', 'PYTHONPATH') }}:/Users/todd.urie/OneDrive - NetApp Inc/Documents/Projects/active/DB/repo/playbookslibrary"
 
   tasks:
     # # Check values needed as Asseertions.  These should be defined in passed extra_vars
@@ -29,7 +28,7 @@
         service:    "{{ raw_service_request['service'] }}"
         operation:  "{{ raw_service_request['operation'] }}"
         resources:  "{{ raw_service_request['req_details'][loop_res_type] }}"
-      loop:     "{{ raw_service_request.req_details.keys() }}"    
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
       loop_control:
         loop_var:     loop_res_type
 
@@ -43,7 +42,7 @@
         operation:         "{{ raw_service_request['operation'] }}"
         std_name:   "{{ raw_service_request['std_name'] }}"
         resources:  "{{ global_completed_request[loop_res_type] }}"
-      loop:     "{{ raw_service_request.req_details.keys() }}"    
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
       loop_control:
         loop_var:     loop_res_type
       

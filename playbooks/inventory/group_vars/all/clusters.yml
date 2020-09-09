@@ -11,8 +11,8 @@
 # the cluster.
 #--------------------------------------------------------------------
 clusters:
-  Cluster01:
-    mgmt_ip:          '192.168.116.150'
-    username:         "{{ vault['clusters']['Cluster01']['username'] }}"
-    password:         "{{ vault['clusters']['Cluster01']['password'] }}"
+  HWVABCMNASDEV001:
+    mgmt_ip:          '10.0.0.220'
+    username:         "{{ vault['clusters']['HWVABCMNASDEV001']['username'] }}"
+    password:         "{{ vault['clusters']['HWVABCMNASDEV001']['password'] }}"
       

@@ -12,11 +12,15 @@ services:
   nfs_base:
     create:
       microservices:
+        - ontap_aggr
+        - ontap_vserver
         - ontap_volume
-        - ontap_qtree
-        - ontap_quotas
-        - ontap_qos_policy_group
+        # - ontap_qtree
+        # - ontap_quotas
+        # - ontap_qos_policy_group
       defaults:
+        ontap_aggr:               {}
+        ontap_vserver:            {}
         ontap_volume:
           snapshot_policy:        'default'
           percent_snapshot_space: 5
@@ -38,6 +42,8 @@ services:
 
       standards:
         nas_standard:
+          ontap_aggr:               {}
+          ontap_vserver:            {}
           ontap_volume:
             size_unit:            'gb'
           ontap_qtree:
@@ -121,43 +127,3 @@ services:
 #     efficiency_policy:      'default'
 #     space_guarantee:        'none'  
 
-
-#--------------------------------------------------------------------
-# Defined Resource Instances:
-# In some cases a standard definition may imply an associated set of 
-# storage resources.  Defined instances are the definitions for those
-# resources
-#
-# Sample for site specific data
-# type:                'mso|data_center'
-# site:                'site_name'
-# instance:            '001'
-#--------------------------------------------------------------------
-resource_instances:
-  site_type_instance:
-    na:
-      controller_name:  'na_controller'
-      #mgmt_ip:          '10.0.1.10'
-    volumes:
-      mso:      
-        vmware_datastore00:
-          size:          '8-96'
-        vmware_datastore01:
-          size:          '8-96'
-        cinder00:
-          size:          '8-96'
-        cinder01:
-          size:          '8-96'
-        nova:
-          size:          '2-48'
-        backup:
-          size:          '2-48'  
-      data_center:    
-          vmware_datastore00:
-            size:          '8-96'
-          vmware_datastore01:
-            size:          '8-96'
-          nova:
-            size:          '200'
-          backup:
-            size:          '100'

@@ -6,6 +6,7 @@ import time
 import argparse
 import sys
 import json
+from datetime import datetime, date, time, timedelta
 
 ##########################################################################
 # CLASS DEFS
@@ -216,6 +217,58 @@ class snow(object):
       return self.snow_incident[attr]
 
 
+#-------------------------------------------------------------------------
+# AWX
+#-------------------------------------------------------------------------
+class awx(object):
+  def __init__(self, host, template_name, extra_vars, credentials):
+    self.template_name  = template_name
+    self.extra_vars     = extra_vars
+    self.credentials    = credentials
+    self.host           = host
+
+  def __get_template_id(self):
+    try:
+      req = requests.get("https://" + self.host + "/api/v2/job_templates?name=" + self.template_name,          
+        auth=(self.credentials['user'], self.credentials['password']), 
+        json=self.extra_vars,
+        verify=False)
+    except:
+      print("failed to get template id")
+      sys.exit(1)
+    self.template_id = req.json()['id']
+
+  def launch_job(self):
+    self.__get_template_id()
+    try:
+      req = requests.post( "https://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
+          auth=(self.credentials['user'], self.credentials['password']), 
+          json=self.extra_vars,
+          verify=False)
+    except:
+      print("failed to launch job")
+      sys.exit(1)
+    self.job = req.json()
+
+  def wait4job(self):
+    req = requests.get( "https://" + self.host + "/api/v2/jobs/" + str(self.job['job']) + "/", 
+      auth=(self.credentials['user'], self.credentials['password']),
+      verify=False )
+
+    status = req.json()
+    finished = status['finished']
+    while not finished:
+      req = requests.get( "https://" + self.host + "/api/v2/jobs/" + str(self.job['job']) + "/", 
+          auth=(self.credentials['user'], self.credentials['password']),
+          verify=False )
+      status = req.json()
+      finished = status['finished']
+
+  def get_job(self):
+    return self.job
+
+
+
 ##########################################################################
 # MAIN
 ##########################################################################
@@ -234,7 +287,12 @@ parser.add_argument('-s', '--wf-server-ip',     required=True)
 parser.add_argument('-u', '--wf-username',      required=True)
 parser.add_argument('-p', '--wf-password',      required=True)
 parser.add_argument('-r', '--req-payload',      required=True)
-parser.add_argument('--snow-req-number',        required=True)
+parser.add_argument('--snow-req-number',        required=False)
+
+parser.add_argument('--awx-host',               required=True)
+parser.add_argument('--awx-template-name',      required=True)
+parser.add_argument('--awx-extra-vars',         required=True)
+parser.add_argument('--awx-creds',              required=True)
 
 args = parser.parse_args()
 
@@ -258,6 +316,9 @@ db_request['raw_servce_request'] = {
    'std_name':    wfa.std_name
 }
 
-print(json.dumps(db_request))
+awx_srvr = awx(args.awx_host, args.awx_template_name, args.extra_vars, args.credentials)
+awx_srvr.launch_job()
+awx_srvr.wait4job()
+print(awx_srvr.get_job())
 
 

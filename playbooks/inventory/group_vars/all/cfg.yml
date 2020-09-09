@@ -20,9 +20,9 @@ services:
         # - ontap_qos_policy_group
       defaults:
         ontap_aggr:
-          state:                  online
+          state:                  present
         ontap_vserver:
-          state:                  online
+          state:                  present
         ontap_volume:
           snapshot_policy:        'default'
           percent_snapshot_space: 5

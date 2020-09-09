@@ -15,8 +15,7 @@
     #       -  site_type           is defined
     #       -  site_instance       is defined
 
-    - include_vars:
-      - inventory/group_vars/all/cfg.yml
+    - include_vars: inventory/group_vars/all/cfg.yml
 
     - name: 'Save initial request details'
       set_fact:

@@ -2,6 +2,9 @@
 
 raw_service_request:
   req_details:
+    ontap_disks:
+    - hostname:               HWVABCMNASDEV001
+      node:                   HWVABCMNASDEV001-01
     ontap_aggr:
     - hostname:               HWVABCMNASDEV001
       name:                   aggr1

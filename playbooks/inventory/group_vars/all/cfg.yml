@@ -12,6 +12,7 @@ services:
   nfs_base:
     create:
       microservices:
+        - ontap_disks
         - ontap_aggr
         - ontap_vserver
         - ontap_volume

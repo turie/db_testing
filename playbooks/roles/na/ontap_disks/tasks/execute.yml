@@ -1,7 +1,7 @@
 ---
 
 -  name: "Assign disks to node"
-   na_ontap_volume:
+   na_ontap_disks:
       hostname:         "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
       username:         "{{ clusters[loop_arg['hostname']]['username'] }}"
       password:         "{{ clusters[loop_arg['hostname']]['password'] }}"

@@ -24,7 +24,7 @@
 
         gather_subset:    cluster_node_info
       register:   info
-      delegate_to:    10.0.0.57
+      #delegate_to:    10.0.0.57
 
     - debug:
         var:    info

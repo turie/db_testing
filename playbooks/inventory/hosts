@@ -1,2 +1,2 @@
 [na]
-HWVABCMNASDEV001 ansible_connection=local ansible_host=localhost
+HWVABCMNASDEV001 ansible_connection=local ansible_host=10.0.0.57 ansible_user=root

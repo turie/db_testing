@@ -7,9 +7,9 @@
     PYTHONPATH:   "{{ lookup('env', 'PYTHONPATH') }}:library"
 
   
-  vars:
-    ansible_user:   root
-    ansible_python_interpreter:   /usr/bin/python3
+  # vars:
+  #   ansible_user:   root
+  #   ansible_python_interpreter:   /usr/bin/python3
 
   tasks:
 

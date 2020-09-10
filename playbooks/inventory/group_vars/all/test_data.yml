@@ -15,7 +15,7 @@ raw_service_request:
       root_volume_aggregate:  aggr1
     ontap_volume:
     - hostname:         HWVABCMNASDEV001
-      name:             voltest01
+      name:             voltest02
       vserver:          db01
       aggregate_name:   aggr1
       size:             1

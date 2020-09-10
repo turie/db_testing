@@ -14,87 +14,87 @@
   tasks:
 
 
-    - na_ontap_info:
-        hostname:         10.0.0.220
-        username:         admin
-        password:         Netapp123@
+    # - na_ontap_info:
+    #     hostname:         10.0.0.220
+    #     username:         admin
+    #     password:         Netapp123@
         
-        https:            true
-        validate_certs:   false
+    #     https:            true
+    #     validate_certs:   false
 
-        gather_subset:    cluster_node_info
-      register:   info
-      #delegate_to:    10.0.0.57
+    #     gather_subset:    cluster_node_info
+    #   register:   info
+    #   #delegate_to:    10.0.0.57
 
-    - debug:
-        var:    info
-
-    # # Check values needed as Asseertions.  These should be defined in passed extra_vars
-    # - name:    'verify required inputs'
-    #   assert:
-    #     that:
-    #       -  site                is defined
-    #       -  site_type           is defined
-    #       -  site_instance       is defined
-
-    # - include_vars: inventory/group_vars/all/cfg.yml
-    # - include_vars: inventory/group_vars/all/vault.yml
-    # - include_vars: inventory/group_vars/all/clusters.yml
-
-    # - name: 'Save initial request details'
-    #   set_fact:
-    #     global_completed_request:  "{{ raw_service_request['req_details'] }}"
-
-    # - name: 'Add Default values to provisioning request payload'
-    #   debug:
-    #     var:    loop_res_type
-    #   loop:     "{{ raw_service_request.req_details.keys() | list }}"    
-    #   loop_control:
-    #     loop_var:     loop_res_type
-
-    # - name: 'Add Default values to provisioning request payload'
-    #   include_role:
-    #     name:     "na/set_defaults"
-    #   vars:
-    #     mode: 'notest'
-    #     res_type:   "{{ loop_res_type }}"
-    #     service:    "{{ raw_service_request['service'] }}"
-    #     operation:  "{{ raw_service_request['operation'] }}"
-    #     resources:  "{{ raw_service_request['req_details'][loop_res_type] }}"
-    #   loop:     "{{ raw_service_request.req_details.keys() | list }}"    
-    #   loop_control:
-    #     loop_var:     loop_res_type
-
-    # - name: 'Enforce provisioning standards on request payload'
-    #   include_role:
-    #     name:     "na/set_standards"
-    #   vars:
-    #     mode: 'notest'
-    #     res_type:   "{{ loop_res_type }}"
-    #     service:    "{{ raw_service_request['service'] }}"
-    #     operation:         "{{ raw_service_request['operation'] }}"
-    #     std_name:   "{{ raw_service_request['std_name'] }}"
-    #     resources:  "{{ global_completed_request[loop_res_type] }}"
-    #   loop:     "{{ raw_service_request.req_details.keys() | list }}"    
-    #   loop_control:
-    #     loop_var:     loop_res_type
-      
     # - debug:
-    #     var:  global_completed_request
+    #     var:    info
 
-    # - name:    'execute each of the provisioning roles'
-    #   include_role:
-    #     name:       "na/{{ loop_resource }}"
-    #     public:     no
-    #   vars:
-    #     args:       "{{ global_completed_request[loop_resource] }}" 
-    #     mode:       "notest"
-    #   loop:          "{{ services[raw_service_request.service][raw_service_request.operation]['microservices'] }}"  
-    #   loop_control:
-    #     loop_var:   loop_resource
-    #   register:      role_result
-    #   ignore_errors:    true
-    #   # when:
-    #   #   - loop_resource | regex_search(types_regex)
+    # Check values needed as Asseertions.  These should be defined in passed extra_vars
+    - name:    'verify required inputs'
+      assert:
+        that:
+          -  site                is defined
+          -  site_type           is defined
+          -  site_instance       is defined
+
+    - include_vars: inventory/group_vars/all/cfg.yml
+    - include_vars: inventory/group_vars/all/vault.yml
+    - include_vars: inventory/group_vars/all/clusters.yml
+
+    - name: 'Save initial request details'
+      set_fact:
+        global_completed_request:  "{{ raw_service_request['req_details'] }}"
+
+    - name: 'Add Default values to provisioning request payload'
+      debug:
+        var:    loop_res_type
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+
+    - name: 'Add Default values to provisioning request payload'
+      include_role:
+        name:     "na/set_defaults"
+      vars:
+        mode: 'notest'
+        res_type:   "{{ loop_res_type }}"
+        service:    "{{ raw_service_request['service'] }}"
+        operation:  "{{ raw_service_request['operation'] }}"
+        resources:  "{{ raw_service_request['req_details'][loop_res_type] }}"
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+
+    - name: 'Enforce provisioning standards on request payload'
+      include_role:
+        name:     "na/set_standards"
+      vars:
+        mode: 'notest'
+        res_type:   "{{ loop_res_type }}"
+        service:    "{{ raw_service_request['service'] }}"
+        operation:         "{{ raw_service_request['operation'] }}"
+        std_name:   "{{ raw_service_request['std_name'] }}"
+        resources:  "{{ global_completed_request[loop_res_type] }}"
+      loop:     "{{ raw_service_request.req_details.keys() | list }}"    
+      loop_control:
+        loop_var:     loop_res_type
+      
+    - debug:
+        var:  global_completed_request
+
+    - name:    'execute each of the provisioning roles'
+      include_role:
+        name:       "na/{{ loop_resource }}"
+        public:     no
+      vars:
+        args:       "{{ global_completed_request[loop_resource] }}" 
+        mode:       "notest"
+      loop:          "{{ services[raw_service_request.service][raw_service_request.operation]['microservices'] }}"  
+      loop_control:
+        loop_var:   loop_resource
+      register:      role_result
+      ignore_errors:    true
+      # when:
+      #   - loop_resource | regex_search(types_regex)
 
 

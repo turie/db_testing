@@ -13,21 +13,21 @@
 
   tasks:
 
-    block:
-      - na_ontap_info:
-          hostname:         10.0.0.220
-          username:         admin
-          password:         Netapp123@
-          
-          https:            true
-          validate_certs:   false
 
-          gather_subset:    cluster_node_info
-        register:   info
+    - na_ontap_info:
+        hostname:         10.0.0.220
+        username:         admin
+        password:         Netapp123@
+        
+        https:            true
+        validate_certs:   false
 
-      - debug:
-          var:    info
-    delegate_to:    10.0.0.57
+        gather_subset:    cluster_node_info
+      register:   info
+      delegate_to:    10.0.0.57
+
+    - debug:
+        var:    info
 
     # # Check values needed as Asseertions.  These should be defined in passed extra_vars
     # - name:    'verify required inputs'

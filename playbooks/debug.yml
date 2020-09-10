@@ -30,12 +30,12 @@
     #     var:    info
 
     # Check values needed as Asseertions.  These should be defined in passed extra_vars
-    - name:    'verify required inputs'
-      assert:
-        that:
-          -  site                is defined
-          -  site_type           is defined
-          -  site_instance       is defined
+    # - name:    'verify required inputs'
+    #   assert:
+    #     that:
+    #       -  site                is defined
+    #       -  site_type           is defined
+    #       -  site_instance       is defined
 
     - include_vars: inventory/group_vars/all/cfg.yml
     - include_vars: inventory/group_vars/all/vault.yml

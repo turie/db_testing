@@ -20,6 +20,8 @@ services:
         # - ontap_quotas
         # - ontap_qos_policy_group
       defaults:
+        ontap_disks:
+          use_rest:               auto
         ontap_aggr:
           state:                  present
         ontap_vserver:
@@ -45,6 +47,7 @@ services:
 
       standards:
         nas_standard:
+          ontap_disks:              {}
           ontap_aggr:               {}
           ontap_vserver:            {}
           ontap_volume:

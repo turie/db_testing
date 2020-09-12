@@ -6,34 +6,34 @@ param (
   [string]$location,
   
   [parameter(Mandatory=$true, HelpMessage="Cost Centre")]
-  [boolean]$cost_centre,
+  [string]$cost_centre,
   
   [parameter(Mandatory=$true, HelpMessage="environment")]
-  [boolean]$environment,
+  [string]$environment,
   
   [parameter(Mandatory=$true, HelpMessage="protocol (NFS|CIFS)")]
-  [boolean]$protocol,
+  [string]$protocol,
   
   [parameter(Mandatory=$true)]
   [int]$storage_requirement,
 
   [parameter(Mandatory=$true, HelpMessage="NAR ID of app")]
-  [boolean]$nar_id,
+  [string]$nar_id,
   
   [parameter(Mandatory=$true, HelpMessage="Application short name")]
-  [boolean]$app_short_name,
+  [string]$app_short_name,
   
   [parameter(Mandatory=$true, HelpMessage="NIS Domain")]
-  [boolean]$nis_domain,
+  [string]$nis_domain,
   
   [parameter(Mandatory=$true, HelpMessage="NIS Netgroup")]
-  [boolean]$nis_netgroup,
+  [string]$nis_netgroup,
   
   [parameter(Mandatory=$true, HelpMessage="email address")]
-  [boolean]$email_address,
+  [string]$email_address,
   
   [parameter(Mandatory=$true, HelpMessage="service desired")]
-  [boolean]$service
+  [string]$service
 )
 
 
@@ -107,7 +107,7 @@ function update_chargeback_table(){
    )
 
    $new_row = "
-      INSERT INTO chargeback
+      INSERT INTO db.chargeback
       VALUES (
          NULL,
          '" + $placement_solution['resources']['ontap_cluster']['name'] + "',
@@ -127,7 +127,7 @@ function update_chargeback_table(){
       ;
    "
 
-   Invoke-MySqlQuery -query $new_row -db_user $db_user -db_pw $db_pw
+   Invoke-MySqlQuery -query $new_row -user $db_user -password $db_pw
 
 }
 #-----------------------------------------------------------------------
@@ -137,10 +137,8 @@ function cluster() {
    param(
       [parameter(Mandatory=$true, HelpMessage="Region")]
       [string]$region,
-      [parameter(Mandatory=$true, HelpMessage="environment")]
-      [string]$environment,
-      [parameter(Mandatory=$true, HelpMessage="service")]
-      [string]$service,
+      [parameter(Mandatory=$true, HelpMessage="request")]
+      [hashtable]$request,
       [parameter(Mandatory=$true, HelpMessage="Cluster service mapping")]
       [hashtable]$cluster_service_map,
       [parameter(Mandatory=$true)]
@@ -150,7 +148,7 @@ function cluster() {
    $cluster_name_regex = $region                                  + `
                         '[a-zA-Z]{3}NAS'                          + `
                         $cluster_service_map[$service]['prefix']  + `
-                        $environment                              + `
+                        $request['environment']                   + `
                         '[0-9]+'
 
    $sql = "
@@ -161,16 +159,18 @@ function cluster() {
             cluster.is_metrocluster    AS 'is_metrocluster'
          FROM cm_storage.cluster
          WHERE 1
-            AND name REGEXP $cluster_name_regex
+            AND name REGEXP '$cluster_name_regex'
          ;
    "
 
    Get-WfaLogger -Info -Message $( "Searching for cluster using REGEX: " + $cluster_name_regex)
 
    $clusters = Invoke-MySqlQuery -Query $sql -User 'root' -Password $mysql_pass
-   Get-WfaLogger -Info -Message $("Found " + $cluster[0] + " clusters")
+   
+   Get-WfaLogger -Info -Message $("Found " + $clusters[0] + " clusters")
 
    if ( $clusters[0] -eq 1 ){
+      Get-WfaLogger -Info -Message $("Found cluster: " + $clusters[1].name)
       return @{
          'success' = $True;
          'reason'  = 'Successfully found cluster';
@@ -198,9 +198,9 @@ function cluster() {
 function vserver() {
    param(
       [parameter(Mandatory=$true)]
-      [string]$nis_domain,
+      [hashtable]$request,
       [parameter(Mandatory=$true)]
-      [string]$cluster_name,
+      [hashtable]$cluster,
       [parameter(Mandatory=$true)]
       [string]$mysql_pw
    )
@@ -209,8 +209,8 @@ function vserver() {
       'success'      = $true;
       'reason'       = '';
       'ontap_vserver'   = @{
-         'name'         = $nis_domain;
-         'cluster_name' = $cluster_name
+         'name'         = 'db01';
+         'hostname'     = $cluster['mgmt_ip']
       }
    }
 }
@@ -218,11 +218,11 @@ function vserver() {
 function volume() {
    param(
       [parameter(Mandatory=$true)]
-      [string]$cluster_name,
+      [hashtable]$request,
       [parameter(Mandatory=$true)]
-      [string]$vserver_name,
+      [hashtable]$cluster,
       [parameter(Mandatory=$true)]
-      [string]$protocol,
+      [hashtable]$vserver,
       [parameter(Mandatory=$true)]
       [string]$mysql_pw
    )
@@ -231,20 +231,14 @@ function volume() {
    # FIXME: RTU 21 Aug 2020
    # vol_data will vary, incorporate that in the regex below
    #--------------------------------------------------------------------
-   $vol_name_regex = $vserver_name + '_vol_data_' + '[0-9]{3}' + '_' + $protocol
+   $vol_name_regex   = $vserver['name'] + '_vol_data_' + '[0-9]{3}' + '_' + $protocol
+   $qtree_name_regex = $request['service'] + '_' + $request['environment'] + '_[0-9]{5}$'
    #--------------------------------------------------------------------
-   # FIXME: RTU 21 Aug 2020
-   # Add the following to this query:
-   # 1.  Group BY volume & sum on quota rule threshold, limit that on
-   #     each volume to 130% of volume size
+   # Try to find a volume that:
+   # 1.  Has the same qtrees already on it
+   # 2.  The overcommit for those qtrees is less than the max
+   # 3.  The useage of the volume is less than the max
    #--------------------------------------------------------------------
-   # SELECT a volume such that:
-   # 1.  name matches regex
-   # 2.  Usage % is 80% or less
-   # 3.  Overcommit is 130% or less
-   # 4.  Protocol matches desired protocol
-   # if we get 0 volumes returned, volume name uses index 001
-   # else volume idx is from the 1st volume + 1
    $vol_select = "
       SELECT
          cluster.name,
@@ -269,24 +263,29 @@ function volume() {
       )
       WHERE 1
          AND qtree.name != ''
-         AND qtree.name REGEXP 'GFS'
+         AND qtree.name REGEXP '$qtree_name_regex'
+         AND volume.used_size_mb/volume.size_mb <= $VOL_USAGE_MAX
       GROUP BY volume.name
-      HAVING overcommit < 3
+      HAVING overcommit < $VOL_OVERCOMMIT_MAX
       ORDER BY volume.used_size_mb ASC
       ;
 "
-
+   Get-WfaLogger -Info -Message $("Querying volumes")
    $vols = invoke-MySqlQuery -query $vol_select -user root -password $mysql_pw
 
    $new_vol_reqd = $False
    if ($vols[0] -ge 1){
+      Get-WfaLogger -Info -Message $("Found several: " + $volumes[0] )
       #----------------------------------------------------
       # We found at least 1, the 1st one in the list is the
       # least used so take that one.
       #----------------------------------------------------
       $vol_name = $vols[1].vol_name
+      Get-WfaLogger -Info -Message $("selected: " + $vol_name )
    }
-   elseif( $vols[0] -lt 1){
+   elseif( $vols[0] -lt 1 ){
+      $new_vol_reqd = $True
+      Get-WfaLogger -Info -Message $("Found no volumes")
       #----------------------------------------------------
       # Nothing suitable it would seem.
       # 1st, find the highest existing vol idx value, then
@@ -305,19 +304,25 @@ function volume() {
             AND volume.name REGEXP '$vol_name_regex'
          ORDER by volume.name DESC
          ;"
-
+      Get-WfaLogger -Info -Message $("Looking for highest idx for any existing vols" )
       $vols = invoke-MySqlQuery -query $vol_select -user root -password $mysql_pw
       if ( $vols[0] -ge 1 ){
-         $old_idx       = ($vols[1].vol_name -replace $($vserver_name + "vol_data_"), '').split('_')[0]
+         Get-WfaLogger -Info -Message $("highest idx volume: " + $vols[1].vol_name )
+         $old_idx       = ($vols[1].vol_name -replace $($vserver['name'] + "_vol_data_"), '').split('_')[0]
+         Get-WfaLogger -Info -Message $("old_idx=" + $old_idx )
          $new_idx       = "{0:d3}" -f ( [int]$old_idx + 1 )
+         $vol_name      = $vols[1].vol_name -replace $old_idx, $new_idx
       }
       else{
-         $new_idx       = "001"
+         $vol_name      = $vserver['name'] + '_vol_data_001' + $request['protocol']
       }
-      $vol_name      = $vols[1].vol_name -replace $old_idx, $new_idx
+      Get-WfaLogger -Info -Message $("vol_name: " + $vol_name )
+
+      
       $new_vol_reqd  = $True
    }
 
+   Get-WfaLogger -Info -Message $("vol name: " + $vol_name )
    if ( $protocol -eq 'nfs' ){
       $security_style = 'unix'
    }
@@ -325,12 +330,12 @@ function volume() {
       $security_style = 'ntfs'
    }
 
-   return $new_vol, @{
+   return $new_vol_reqd, @{
       'success'         = $True;
       'reason'          = "successfully found suitable volume";
       'ontap_volume'    = @{
-         'cluster'         = $cluster_name;
-         'vserver'         = $vserver_name;
+         'hostname'        = $cluster['mgmt_ip'];
+         'vserver'         = $vserver['name'];
          'name'            = $vol_name;
          'junction_path'   = '/' + $vol_name;
          'security_style'  = $security_style;
@@ -341,58 +346,65 @@ function volume() {
 function qtree() {
    param(
       [parameter(Mandatory=$true)]
-      [string]$cluster_name,
+      [hashtable]$request,
       [parameter(Mandatory=$true)]
-      [string]$vserver_name,
+      [hashtable]$cluster,
       [parameter(Mandatory=$true)]
-      [string]$vol_name,
+      [hashtable]$vserver,
+      [parameter(Mandatory=$true)]
+      [hashtable]$volume,
       [parameter(Mandatory=$true)]
       [boolean]$new_vol,
-      [parameter(Mandatory=$true)]
-      [string]$service,
-      [parameter(Mandatory=$true)]
-      [string]$environment,
       [parameter(Mandatory=$true)]
       [string]$mysql_pw
    )
 
-   $qtree_regex = $service + '_' + $environment + '_[0-9]{3}$'
+   $qtree_regex = $request['service'] + '_' + $request['environment'] + '_[0-9]{' + $QTREE_NUM_DIGITS + '}$'
 
    $qtree_select = "
-         SELECT
-         qtree.name     AS 'qtree_name',
-         volume.name    AS 'vol_name',
-         vserver.name   AS 'vserver_name',
-         cluster.name   AS 'cluster_name'
+      SELECT
+         qtree.name                 AS 'qtree_name',
+         volume.name                AS 'vol_name',
+         vserver.name               AS 'vserver_name',
+         cluster.name               AS 'cluster_name'
       FROM cm_storage.cluster
       JOIN cm_storage.vserver   ON (vserver.cluster_id  = cluster.id)
       JOIN cm_storage.volume    ON (volume.vserver_id   = vserver.id)
       JOIN cm_storage.qtree     ON (qtree.volume_id     = volume.id)
       WHERE 1
-         AND qtree.name REGEXP '$qtree_regex'
+         AND cluster.primary_address   = '" + $cluster['mgmt_ip'] + "'
+         AND vserver.name              = '" + $vserver['name'] + "'
+         AND qtree.name                REGEXP '$qtree_regex'
       ORDER BY qtree.name DESC
       ;
    "
-
+   Get-WfaLogger -Info -Message "Looking for qtrees on the volume"
    $qtrees = Invoke-MySqlQuery -query $qtree_select -user root -password $mysql_pw
 
    if ( $qtrees[0] -ge 1 ){
-      $old_idx    = $qtrees[1].qtree_name).split('_')[2]
-      $new_idx    = "{0:d3}" -f ( ([int]$old_idx + 1 )
+      Get-WfaLogger -Info -Message $("Will use qtree: " + $qtrees[1].qtree_name)
+      $old_idx    = ($qtrees[1].qtree_name).split('_')[2]
+      $new_idx    = [int]$old_idx + 1
+      $new_idx_str   = "{0:d$QTREE_NUM_DIGITS}" -f ( $new_idx )
+      $qtree_name    = $qtrees[1].qtree_name -replace, $old_idx, $new_idx_str
    }
    else{
-      $new_idx = '001'
+      Get-WfaLogger -Info -Message "None, this is the 1st"
+      $new_idx    = 1
+      $new_idx_str   = "{0:d$QTREE_NUM_DIGITS}" -f ( $new_idx )
+      $qtree_name    = $request['service'] + '_' + $request['environment'] + '_' + $new_idx_str
    }
-   $qtree_name = $qtrees[1].qtree_name -replace, $old_idx, $new_idx
-
+   
+   
+   Get-WfaLogger -Info -Message $("qtree_name=" + $qtree_name)
    return @{
       'success'      = $True;
       'reason'       = "successfully built qtree name";
       'ontap_qtree'  = @{
-         'cluster'   = $cluster_name;
-         'vserver'   = $vserver_name;
-         'volume'    = $vol_name;
-         'name'      = $qtree_name
+         'hostname'        = $cluster['mgmt_ip'];
+         'vserver'         = $vserver['name'];
+         'flexvol_name'    = $volume['name'];
+         'name'            = $qtree_name
       }
    }
 }
@@ -400,7 +412,7 @@ function qtree() {
 function aggregate(){
    param(
       [parameter(Mandatory=$true)]
-      [string]$cluster_name,
+      [hashtable]$cluster,
       [parameter(Mandatory=$true)]
       [string]$vol_size,
       [parameter(Mandatory=$true)]
@@ -421,30 +433,36 @@ function aggregate(){
          'ontap_aggregate' = @{}
       }
    }
-
+   #------------------------------------------------------------
+   # If we want to emulate the "WFA Finder" operation, we can
+   # use INNER JOIN to emulate set intersection so we can use
+   # multiple criteria to define multiple return sets then take
+   # only what is common among all the results.
+   #------------------------------------------------------------
    $aggr_select_sql = "
       SELECT
          cluster.name         AS 'cluster_name',
          node.name            AS 'node_name',
-         aggregate.name       AS 'name',
+         aggregate.name       AS 'name'
       FROM cm_storage.cluster
       JOIN cm_storage.node ON (node.cluster_id = cluster.id)
       JOIN cm_storage.aggregate ON (aggregate.node_id = node.id)
       WHERE 1
-         AND cluster.name = '$cluster_name'
-         AND aggregate.name NOT LIKE aggr0*
+         AND cluster.primary_address = '" + $cluster['mgmt_ip'] + "'
+         AND aggregate.name NOT LIKE 'aggr0*'
       ORDER BY aggregate.available_size_mb DESC
       ;"
-
+   Get-WfaLogger -Info -Message $("Looking for an aggr" )
    $aggrs = Invoke-MySqlQuery -query $aggr_select_sql -user root -password $mysql_pw
 
    if ( $aggrs[0] -ge 1 ){
+      Get-WfaLogger -Info -Message $("Found aggr: " + $aggrs[1].name )
       return @{
          'success'      = $True;
          'reason'       = "Found suitable aggregate";
          'ontap_aggr'   = @{
             'name'      = $aggrs[1].name;
-            'cluster'   = $cluster_name;
+            'cluster'   = $cluster['mgmt_ip'];
             'node'      = $aggrs[1].node_name
          }
       }
@@ -460,15 +478,11 @@ function aggregate(){
 function nfs_export(){
    param(
       [parameter(Mandatory=$true)]
-      [string]$cluster_name,
+      [hashtable]$cluster,
       [parameter(Mandatory=$true)]
-      [string]$vserver_name,
+      [hashtable]$vserver,
       [parameter(Mandatory=$true)]
-      [string]$vol_name,
-      [parameter(Mandatory=$true)]
-      [string]$policy_name,
-      [parameter(Mandatory=$true)]
-      [string]$rules,
+      [hashtable]$volume,
       [parameter(Mandatory=$true)]
       [string]$mysql_pw
    )
@@ -477,9 +491,9 @@ function nfs_export(){
       'success'      = $True;
       'reason'       = "Testing only";
       'nfs_export'   = @{
-         'cluster'      = $cluster_name;
-         'vserver'      = $vserver_name;
-         'policy_name'  = $policy_name;
+         'hostname'     = $cluster['mgmt_ip'];
+         'vserver'      = $vserver['name'];
+         'policy_name'  = $volume['name'];
          'policy_rules' = 'client_match=1.1.1.1;ro_rule=sys;rw_rule=sys;super_user_security=none;protocol=nfs,client_match=2.2.2.2;ro_rule=sys;rw_rule=sys;super_user_security=none;protocol=nfs'
       }
    }
@@ -513,9 +527,11 @@ $cluster_service_map = @{
 $VOL_USAGE_MAX       = 0.8
 $VOL_SIZE_STD        = 1
 $VOL_OVERCOMMIT_MAX  = 1.3
+$QTREE_NUM_DIGITS    = 5
 ########################################################################
 # MAIN
 ########################################################################
+Get-WfaLogger -Info -Message "Get DB Passwords"
 $playground_pass  = Get-WFAUserPassword -pw2get "WFAUSER"
 $mysql_pass       = Get-WFAUserPassword -pw2get "MySQL"
 
@@ -531,7 +547,8 @@ $request = @{
    'nis_domain'            = $nis_domain;
    'nis_netgroup'          = $nis_netgroup;
    'email_address'         = $email_address;
-   'service'               = $service
+   'service'               = $service;
+   'ticket_number'         = $ticket_number
 }
 
 $placement_solution = @{
@@ -544,10 +561,12 @@ $placement_solution = @{
 #---------------------------------------------------------------
 # If we don't have a mapping for the service we must bail
 #---------------------------------------------------------------
+Get-WfaLogger -Info -Message "Check requested service against supported services"
 if ( -not $cluster_service_map.ContainsKey($service) ){
-   Get-WfaLogger -Info -Message $("Failed to find service mapping for: " + $service)
+   $fail_msg = 'unsupported service requested: ' + $service
+   Get-WfaLogger -Info -Message $($fail_msg)
    $placement_solution['success']   = 'FALSE'
-   $placement_solution['reason']    = 'unsupported service requested: ' + $service
+   $placement_solution['reason']    = $fail_msg
    set_wfa_return_values $placement_solution
    exit
 }
@@ -557,7 +576,8 @@ $placement_solution['std_name']  = $cluster_service_map[$service]['std_name']
 #---------------------------------------------------------------
 # Is the NIS domain valid?
 #---------------------------------------------------------------
-$nis_is_valid = nis_is_valid -nis_domain $nis_domain
+Get-WfaLogger -Info -Message "Is the NIS domain valid?"
+$nis_is_valid = nis_is_valid -nis_domain $nis_domain -mysql_pw $mysql_pass 
 if ( -not $nis_is_valid['success'] ){
    $fail_msg = "requested NIS Domain is not valid: " + $nis_domain
    Get-WfaLogger -Info -Message $fail_msg
@@ -570,11 +590,12 @@ if ( -not $nis_is_valid['success'] ){
 #---------------------------------------------------------------
 # Get the cluster
 #---------------------------------------------------------------
+Get-WfaLogger -Info -Message "Find the cluster record"
 $cluster = cluster `
       -region $location `
-      -environment $environment `
-      -service $service `
-      -cluster_service_map $cluster_service_map
+      -request $request `
+      -cluster_service_map $cluster_service_map `
+      -mysql_pw $mysql_pass 
 if ( -not $cluster['success'] ){
    $fail_msg = $cluster['reason'] + ": region=" + $location + ",environment=" + $environment + ",service=" + $service
    Get-WfaLogger -Info -Message $fail_msg
@@ -587,9 +608,11 @@ if ( -not $cluster['success'] ){
 #---------------------------------------------------------------
 # Get the vserver that matches the NIS Domain
 #---------------------------------------------------------------
+Get-WfaLogger -Info -Message "Find the vserver record"
 $vserver = vserver `
-         -nis_domain $nis_domain `
-         -cluster $cluster['ontap_cluster']['name']
+         -request $request `
+         -cluster $cluster['ontap_cluster'] `
+         -mysql_pw $mysql_pass 
 if ( -not $vserver['success'] ){
    $fail_msg = $vserver['reason'] + ": nis_domain=" + $request['nis_domain']
    Get-WfaLogger -Info -Message $fail_msg
@@ -604,10 +627,11 @@ if ( -not $vserver['success'] ){
 # need a new one, then we'll get a new aggr, otherwise the aggr
 # function just returns an empty result.
 #---------------------------------------------------------------
+Get-WfaLogger -Info -Message "Find a volume"
 $new_vol_reqd, $volume = volume `
-      -cluster_name $cluster['ontap_cluster']['name'] `
-      -vserver_name $vserver['ontap_vserver']['name'] `
-      -protocol $protocol `
+      -cluster $cluster['ontap_cluster'] `
+      -vserver $vserver['ontap_vserver'] `
+      -request $request `
       -mysql_pw $mysql_pass
 if ( -not $volume['success'] ){
    $fail_msg = $volume['reason']
@@ -618,11 +642,14 @@ if ( -not $volume['success'] ){
    exit
 }
 
-$aggr = aggregate `
-      -cluster_name $cluster['ontap_cluster']['name'] `
-      -vol_size $VOL_SIZE_STD `
-      -new_vol_reqd $new_vol_reqd `
-      -mysql_pw $mysql_pw
+Get-WfaLogger -Info -Message $("new_vol_reqd=" + $new_vol_reqd)
+
+Get-WfaLogger -Info -Message "Find an aggr"
+$aggr = aggregate                               `
+      -cluster       $cluster['ontap_cluster']  `
+      -vol_size      $VOL_SIZE_STD              `
+      -new_vol_reqd  $new_vol_reqd              `
+      -mysql_pw      $mysql_pass
 if ( -not $aggr['success'] ){
    $fail_msg = $aggr['reason']
    Get-WfaLogger -Info -Message $fail_msg
@@ -631,14 +658,14 @@ if ( -not $aggr['success'] ){
    set_wfa_return_values $placement_solution
    exit
 }
-
-$qtree = qtree -cluster_name $cluster['ontap_cluster']['name'] `
-   -vserver $vserver['ontap_vserver']['name'] `
-   -vol_name $volume['ontap_volume']['name'] `
-   -new_vol $new_vol_reqd  `
-   -service $service    `
-   -environment $environment `
-   -mysql_pw   $mysql_pw
+Get-WfaLogger -Info -Message "Build the qtree name"
+$qtree = qtree  `
+   -request    $request                      `
+   -cluster    $cluster['ontap_cluster']     `
+   -vserver    $vserver['ontap_vserver']     `
+   -volume     $volume['ontap_volume']       `
+   -new_vol    $new_vol_reqd                 `
+   -mysql_pw   $mysql_pass
 if ( -not $qtree['success'] ){
    $fail_msg = $qtree['reason']
    Get-WfaLogger -Info -Message $fail_msg
@@ -647,14 +674,12 @@ if ( -not $qtree['success'] ){
    set_wfa_return_values $placement_solution
    exit
 }
-
+Get-WfaLogger -Info -Message "Build NFS export policy & rules"
 $nfs_export = nfs_export `
-   -cluster_name  $cluster['ontap_cluster']['name'] `
-   -vserver_name  $vserver['ontap_vserver']['name'] `
-   -vol_name      $volume['ontap_volume']['name']  `
-   -policy_name   $policy_name   `
-   -rules         $rules   `
-   -mysql_pw      $mysql_pw
+   -cluster  $cluster['ontap_cluster'] `
+   -vserver  $vserver['ontap_vserver'] `
+   -volume   $volume['ontap_volume']  `
+   -mysql_pw      $mysql_pass
 if ( -not $nfs_export['success'] ){
    $fail_msg = $nfs_export['reason']
    Get-WfaLogger -Info -Message $fail_msg
@@ -667,17 +692,20 @@ if ( -not $nfs_export['success'] ){
 #---------------------------------------------------------------
 # Everything was successful so consolidate and finish up
 #---------------------------------------------------------------
+Get-WfaLogger -Info -Message $("cluster=" + $cluster['ontap_cluster']['name'])
 $placement_solution['resources'] = @{
-   'ontap_cluster'   = $cluster;
-   'ontap_aggr'      = $aggr;
-   'ontap_volume'    = $volume;
-   'ontap_qtree'     = $qtree;
-   'nfs_export'      = $nfs_export
+   'ontap_cluster'   = $cluster['ontap_cluster'];
+   'ontap_vserver'   = $vserver['ontap_vserver'];
+   'ontap_aggr'      = $aggr['ontap_aggr'];
+   'ontap_volume'    = $volume['ontap_volume'];
+   'ontap_qtree'     = $qtree['ontap_qtree'];
+   'nfs_export'      = $nfs_export['nfs_export']
 }
-
-set_wfa_return_value -placement_solution $placement_solution
+Get-WfaLogger -Info -Message "Set return values"
+set_wfa_return_values -placement_solution $placement_solution
+Get-WfaLogger -Info -Message "Update chargeback table"
 update_chargeback_table `
    -placement_solution $placement_solution `
    -request $request `
    -db_user 'root' `
-   -db_pw $mysql_pw
+   -db_pw $mysql_pass

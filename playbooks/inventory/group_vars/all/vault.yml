@@ -12,7 +12,7 @@
 #--------------------------------------------------------------------
 vault:
   clusters:
-    HWVABCMNASDEV001:
+    HWVABCNASMDEV001:
       username:      'admin'
       password:      'Netapp123@'
          

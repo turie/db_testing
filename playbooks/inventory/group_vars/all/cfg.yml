@@ -9,15 +9,15 @@
 #--------------------------------------------------------------------
 
 services:
-  nfs_base:
+  nas_provision:
     create:
       microservices:
-        #- ontap_disks
+        - ontap_disks
         - ontap_aggr
         - ontap_vserver
         - ontap_volume
-        # - ontap_qtree
-        # - ontap_quotas
+        - ontap_qtree
+        - ontap_quotas
         # - ontap_qos_policy_group
       defaults:
         ontap_disks:
@@ -38,7 +38,7 @@ services:
           security_style:         'mixed'
           state:                  'present'
         ontap_quotas:
-          type:                   'user'
+          type:                   'tree'
         ontap_qos_policy_group: {}
         ontap_export_policy_rule:
             ro_rule:                  'none'
@@ -46,7 +46,7 @@ services:
         ontap_export_policy:  {}
 
       standards:
-        nas_standard:
+        nas_premium:
           ontap_disks:              {}
           ontap_aggr:               {}
           ontap_vserver:            {}
@@ -55,7 +55,7 @@ services:
           ontap_qtree:
             oplocks:              'disabled'
           ontap_quotas:
-            type:                   'user'
+            type:                   'tree'
           ontap_qos_policy_group: {}
           ontap_export_policy_rule: {}
           ontap_export_policy:  {}

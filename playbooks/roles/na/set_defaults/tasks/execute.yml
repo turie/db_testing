@@ -11,7 +11,7 @@
 
 - name:  'Combine defaults to passed extra_vars payload'
   set_fact:
-    temp:   "{{ temp + [ combine( resources[idx] ) ]  }}"
+    temp:   "{{ temp + [  resources[idx]  ]  }}"
   loop:    "{{ resources }}"
   loop_control:
     loop_var:   loop_resource

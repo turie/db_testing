@@ -6,8 +6,8 @@ import time
 import argparse
 import sys
 import json
-from datetime import datetime, date, time, timedelta
-
+from datetime import datetime, date,  timedelta
+from time import sleep
 ##########################################################################
 # CLASS DEFS
 ##########################################################################
@@ -105,7 +105,7 @@ class wfa_server(object):
                   {
                      'name'   :              nfs_export['policy_name'],
                      'vserver':              nfs_export['vserver'],
-                     'controller_name':      nfs_export['cluster'],
+                     'controller_name':      nfs_export['hostname'],
                   }
                ],
                'volumes':  [
@@ -113,7 +113,7 @@ class wfa_server(object):
                      'vol_name':          self.placement_solution['ontap_volume']['name'],
                      'vserver':           self.placement_solution['ontap_volume']['vserver'],
                      'policy_name':       nfs_export['policy_name'],
-                     'conotroller_name':  self.placement_solution['ontap_volume']['cluster'],
+                     'conotroller_name':  self.placement_solution['ontap_volume']['hostname'],
                   }
                ],
                'rules':    []
@@ -286,27 +286,28 @@ urllib3.disable_warnings (urllib3.exceptions.InsecureRequestWarning)
 
 parser = argparse.ArgumentParser()
 
-# parser.add_argument('-w', '--wf-name',          required=True)
-# parser.add_argument('-s', '--wf-server-ip',     required=True)
-# parser.add_argument('-u', '--wf-username',      required=True)
-# parser.add_argument('-p', '--wf-password',      required=True)
-# parser.add_argument('-r', '--req-payload',      required=True)
+parser.add_argument('-w', '--wf-name',          required=True)
+parser.add_argument('-s', '--wf-server-ip',     required=True)
+parser.add_argument('-u', '--wf-username',      required=True)
+parser.add_argument('-p', '--wf-password',      required=True)
+parser.add_argument('-r', '--req-payload',      required=True)
 # parser.add_argument('--snow-req-number',        required=False)
 
-parser.add_argument('--awx-host',               required=True)
-parser.add_argument('--awx-template-name',      required=True)
-parser.add_argument('--awx-extra-vars',         required=False)
-parser.add_argument('--awx-user',               required=True)
-parser.add_argument('--awx-password',           required=True)
+# parser.add_argument('--awx-host',               required=True)
+# parser.add_argument('--awx-template-name',      required=True)
+# parser.add_argument('--awx-extra-vars',         required=False)
+# parser.add_argument('--awx-user',               required=True)
+# parser.add_argument('--awx-password',           required=True)
 
 args = parser.parse_args()
 
 # snow_srvr = snow( snow_params )
 # snow_srvr.get_req( args.snow_req_number)
 
-# wfa = wfa_server(args.wf_name, args.wf_server_ip, {'username': args.wf_username, 'password': args.wf_password}, json.loads(args.req_payload) )
-# wfa.start_wf()
-# wfa.wait4_wf()
+wfa = wfa_server(args.wf_name, args.wf_server_ip, {'username': args.wf_username, 'password': args.wf_password}, json.loads(args.req_payload) )
+wfa.start_wf()
+wfa.wait4_wf()
+print(wfa.get_placement_solution())
 
 # if not wfa.success:
 #    snow_srvr.new_incident(wfa.reason, args.req_payload, 'storage-ops@db.com')
@@ -321,9 +322,10 @@ args = parser.parse_args()
 #    'std_name':    wfa.std_name
 # }
 
-awx_srvr = awx(args.awx_host, args.awx_template_name,  { 'user': args.awx_user, 'password': args.awx_password})
-awx_srvr.launch_job()
-awx_srvr.wait4job()
-print(awx_srvr.get_job())
+# awx_srvr = awx(args.awx_host, args.awx_template_name,  { 'user': args.awx_user, 'password': args.awx_password})
+# awx_srvr.launch_job()
+# awx_srvr.wait4job()
+
+# print(awx_srvr.get_job())
 
 

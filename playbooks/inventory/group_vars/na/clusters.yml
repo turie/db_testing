@@ -1,0 +1,18 @@
+---
+#--------------------------------------------------------------------
+# Each cluster provisioned must have an entry in the 'clusters'
+# dictionary.  The cluster name is the key under 'clusters'
+# and will be used to determine the name of various resources to
+# be provisioned (e.g. aggrs).  Therefore the name used for the
+# cluster MUST be a legal name for all resources types (e.g.
+# no hyphens in the name because hyphens are illegal characters for
+# aggr names).  The cluster name does not need to be DNS
+# resolvable because the 'mgmt_ip' is always used to communicate with
+# the cluster.
+#--------------------------------------------------------------------
+clusters:
+  HWVABCNASMDEV001:
+    mgmt_ip:          '10.0.0.220'
+    username:         "{{ vault['clusters']['HWVABCNASMDEV001']['username'] }}"
+    password:         "{{ vault['clusters']['HWVABCNASMDEV001']['password'] }}"
+      

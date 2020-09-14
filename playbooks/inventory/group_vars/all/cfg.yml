@@ -16,8 +16,8 @@ services:
         - ontap_aggr
         - ontap_vserver
         - ontap_volume
-        # - ontap_qtree
-        # - ontap_quotas
+        - ontap_qtree
+        - ontap_quotas
         # - ontap_qos_policy_group
       defaults:
         ontap_disks:

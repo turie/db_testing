@@ -9,7 +9,7 @@
   set_fact:
     temp: []
 - debug:
-    var: service
+    var: services
 - debug:
     var: operation
 - debug:

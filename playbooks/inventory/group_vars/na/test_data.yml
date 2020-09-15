@@ -53,6 +53,6 @@ raw_service_request:
       quota_target:           "/vol/db01_vol_data_001_nfs/GFS_DEV_003"
       disk_limit:             "1g"
       vserver:                "db01"
-  service:                    "GFS"
+  service:                    "nas_provision"
   operation:                  "create"
   std_name:                   "nas_premium"

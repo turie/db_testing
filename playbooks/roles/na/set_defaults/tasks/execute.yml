@@ -19,7 +19,7 @@
 
 - debug:
     var:  services[service][operation]['defaults'][res_type]
-  loop:    "{{ resources }}"
+  loop:    "{{ resources | list }}"
   loop_control:
     loop_var:   loop_resource
     index_var:  idx

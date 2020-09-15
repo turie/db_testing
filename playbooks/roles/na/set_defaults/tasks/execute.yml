@@ -9,6 +9,12 @@
   set_fact:
     temp: []
 
+- debug:
+    var:  resources
+
+- debug:
+    var:  services
+
 - name:  'Combine defaults to passed extra_vars payload'
   set_fact:
     temp:   "{{ temp + [ services[service][operation]['defaults'][res_type] | combine( resources[idx] ) ]  }}"

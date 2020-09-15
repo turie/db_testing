@@ -101,7 +101,7 @@ class wfa_server(object):
         self.placement_solution[res_type] = []
         self.placement_solution[res_type].append(res_def)
 
-      self.__normalize_nfs_export(nfs_export)
+      #self.__normalize_nfs_export(nfs_export)
 
    def __normalize_nfs_export(self, nfs_export):
       self.placement_solution['nfs_export'] = dict()

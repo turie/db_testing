@@ -20,7 +20,8 @@
     - include_vars: inventory/group_vars/na/clusters.yml
 
     - debug:
-        var:  raw_service_request
+        var:  raw_service_request['req_details']
+    - meta: end_play
 
     - name: 'Save initial request details'
       set_fact:

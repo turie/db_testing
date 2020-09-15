@@ -8,10 +8,9 @@
 - name: 'Initialize temporary list for building combined default payload'
   set_fact:
     temp: []
-    
+
 - debug:
     var: services
-
 
 - name:  'Combine defaults to passed extra_vars payload'
   set_fact:

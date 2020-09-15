@@ -16,6 +16,8 @@
     #       -  site_instance       is defined
 
     - include_vars: inventory/group_vars/na/cfg.yml
+    - include_vars: inventory/group_vars/na/vault.yml
+    - include_vars: inventory/group_vars/na/clusters.yml
 
     - name: 'Save initial request details'
       set_fact:

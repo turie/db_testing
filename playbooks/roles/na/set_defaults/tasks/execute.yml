@@ -10,7 +10,18 @@
     temp: []
 
 - debug:
-    var: services
+    var:  services[service][operation]['defaults'][res_type]
+  loop:    "{{ resources }}"
+  loop_control:
+    loop_var:   loop_resource
+    index_var:  idx
+
+- debug:
+    var:  resources[idx]
+  loop:    "{{ resources }}"
+  loop_control:
+    loop_var:   loop_resource
+    index_var:  idx
 
 - name:  'Combine defaults to passed extra_vars payload'
   set_fact:

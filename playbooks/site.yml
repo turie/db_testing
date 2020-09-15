@@ -24,9 +24,7 @@
     - name: 'Save initial request details'
       set_fact:
         global_completed_request:  "{{ raw_service_request['req_details'] }}"
-    - debug:
-        var:  global_completed_request
-    - meta: end_play
+
     - name: 'Add Default values to provisioning request payload'
       include_role:
         name:     "na/set_defaults"
@@ -39,6 +37,10 @@
       loop:     "{{ raw_service_request.req_details.keys() | list }}"    
       loop_control:
         loop_var:     loop_res_type
+
+    - debug:
+        var:  global_completed_request
+    - meta: end_play
 
     - name: 'Enforce provisioning standards on request payload'
       include_role:

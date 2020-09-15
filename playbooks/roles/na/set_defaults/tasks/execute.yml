@@ -15,7 +15,7 @@
       - "res_type={{ res_type }}"
       - "service={{ service }}"
       - "operation={{ operation }}"
-      - "resources={{ resources }}"
+      - "resources={{ resources | length }}"
 
 - debug:
     var:  services[service][operation]['defaults'][res_type]

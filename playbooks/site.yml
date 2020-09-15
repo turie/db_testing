@@ -19,14 +19,14 @@
     - include_vars: inventory/group_vars/na/vault.yml
     - include_vars: inventory/group_vars/na/clusters.yml
 
-    - debug:
-        var:  raw_service_request['req_details']
-    - meta: end_play
+
 
     - name: 'Save initial request details'
       set_fact:
         global_completed_request:  "{{ raw_service_request['req_details'] }}"
-
+    - debug:
+        var:  global_completed_request
+    - meta: end_play
     - name: 'Add Default values to provisioning request payload'
       include_role:
         name:     "na/set_defaults"

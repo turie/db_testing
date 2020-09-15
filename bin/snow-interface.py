@@ -73,6 +73,7 @@ class wfa_server(object):
      return self.placement_solution
 
    def __normalize_placement_solution(self):
+      tmp_solution = dict()
       nfs_export = dict()
       for attr, value in self.raw_placement_solution.items():
          if ( attr in ['success', 'reason', 'std_name'] ):
@@ -89,16 +90,20 @@ class wfa_server(object):
 
          res_type   = '_'.join(attr.split('_')[0:2])
          attr_name  = '_'.join(attr.split('_')[2:])
-         if not res_type in self.placement_solution:
-            self.placement_solution[res_type] = dict()
+         if not res_type in tmp_solution:
+            tmp_solution[res_type] = dict()
          if res_type != 'nfs_export':
-            self.placement_solution[res_type][attr_name] = value
+            tmp_solution[res_type][attr_name] = value
          else:
             nfs_export.update( { attr_name: value } )
+
+      for res_type, res_def in tmp_solution.items():
+        self.placement_solution[res_type] = []
+        self.placement_solution[res_type].append(res_def)
+
       self.__normalize_nfs_export(nfs_export)
 
    def __normalize_nfs_export(self, nfs_export):
-      print(json.dumps(nfs_export))
       self.placement_solution['nfs_export'] = dict()
       self.placement_solution['nfs_export'].update( {
                'policies': [
@@ -110,10 +115,10 @@ class wfa_server(object):
                ],
                'volumes':  [
                   {
-                     'vol_name':          self.placement_solution['ontap_volume']['name'],
-                     'vserver':           self.placement_solution['ontap_volume']['vserver'],
+                     'vol_name':          self.placement_solution['ontap_volume'][0]['name'],
+                     'vserver':           self.placement_solution['ontap_volume'][0]['vserver'],
                      'policy_name':       nfs_export['policy_name'],
-                     'conotroller_name':  self.placement_solution['ontap_volume']['hostname'],
+                     'conotroller_name':  self.placement_solution['ontap_volume'][0]['hostname'],
                   }
                ],
                'rules':    []
@@ -241,6 +246,7 @@ class awx(object):
 
   def launch_job(self):
     self.__get_template_id()
+
     #try:
     req = requests.post( self.rest_protocol + "://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
           auth=(self.credentials['user'], self.credentials['password']), 
@@ -322,12 +328,23 @@ wfa.wait4_wf()
 #    'operation':   'create',
 #    'std_name':    wfa.std_name
 # }
-extra_vars = wfa.get_placement_solution()
-print(extra_vars)
-print("#####################################")
+
+extra_vars = {
+  "extra_vars": {
+    "raw_service_request": {
+      "req_details": wfa.get_placement_solution(),
+      "service":  "nas_provision",
+      "operation": "create",
+      "std_name": "nas_premium"
+    }
+  }
+}
+print(json.dumps(extra_vars))
+sys.exit(0)
+#print("#####################################")
 awx_srvr = awx(args.awx_host, args.awx_template_name,  { 'user': args.awx_user, 'password': args.awx_password }, extra_vars)
 awx_srvr.launch_job()
 awx_srvr.wait4job()
-print(awx_srvr.get_job())
+#print(awx_srvr.get_job())
 
 

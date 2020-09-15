@@ -2,7 +2,6 @@
 HWVABCNASMDEV001
 
 [na:vars]
- #ansible_connection=local
- ansible_user=root
- ansible_host=10.0.0.57
- ansible_python_interpreter=/usr/bin/python3
+ansible_user=root
+ansible_host=10.0.0.57
+ansible_python_interpreter=/usr/bin/python3

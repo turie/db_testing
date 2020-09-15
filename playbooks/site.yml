@@ -19,6 +19,9 @@
     - include_vars: inventory/group_vars/na/vault.yml
     - include_vars: inventory/group_vars/na/clusters.yml
 
+    - debug:
+        var:  raw_service_request
+
     - name: 'Save initial request details'
       set_fact:
         global_completed_request:  "{{ raw_service_request['req_details'] }}"

@@ -221,9 +221,9 @@ class snow(object):
 # AWX
 #-------------------------------------------------------------------------
 class awx(object):
-  def __init__(self, host, template_name,  credentials, rest_protocol='http'):
+  def __init__(self, host, template_name,  credentials, extra_vars, rest_protocol='http'):
     self.template_name  = template_name
-    #self.extra_vars     = extra_vars
+    self.extra_vars     = extra_vars
     self.credentials    = credentials
     self.host           = host
     self.rest_protocol  = rest_protocol
@@ -241,17 +241,18 @@ class awx(object):
 
   def launch_job(self):
     self.__get_template_id()
-    try:
-      # req = requests.post( "https://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
-      #     auth=(self.credentials['user'], self.credentials['password']), 
-      #     json=self.extra_vars,
-      #     verify=False)
-      req = requests.post( self.rest_protocol + "://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
+    #try:
+    req = requests.post( self.rest_protocol + "://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
           auth=(self.credentials['user'], self.credentials['password']), 
+          json=self.extra_vars,
           verify=False)
-    except:
-      print("failed to launch job")
-      sys.exit(1)
+      # req = requests.post( self.rest_protocol + "://" + self.host + "/api/v2/job_templates/" + str(self.template_id) + "/launch/", 
+      #     auth=(self.credentials['user'], self.credentials['password']), 
+      #     verify=False)
+   #  except:
+   #    print("failed to launch job")
+
+   #    sys.exit(1)
     self.job = req.json()
 
   def wait4job(self):
@@ -293,11 +294,11 @@ parser.add_argument('-p', '--wf-password',      required=True)
 parser.add_argument('-r', '--req-payload',      required=True)
 # parser.add_argument('--snow-req-number',        required=False)
 
-# parser.add_argument('--awx-host',               required=True)
-# parser.add_argument('--awx-template-name',      required=True)
-# parser.add_argument('--awx-extra-vars',         required=False)
-# parser.add_argument('--awx-user',               required=True)
-# parser.add_argument('--awx-password',           required=True)
+parser.add_argument('--awx-host',               required=True)
+parser.add_argument('--awx-template-name',      required=True)
+parser.add_argument('--awx-extra-vars',         required=False)
+parser.add_argument('--awx-user',               required=True)
+parser.add_argument('--awx-password',           required=True)
 
 args = parser.parse_args()
 
@@ -307,7 +308,7 @@ args = parser.parse_args()
 wfa = wfa_server(args.wf_name, args.wf_server_ip, {'username': args.wf_username, 'password': args.wf_password}, json.loads(args.req_payload) )
 wfa.start_wf()
 wfa.wait4_wf()
-print(wfa.get_placement_solution())
+
 
 # if not wfa.success:
 #    snow_srvr.new_incident(wfa.reason, args.req_payload, 'storage-ops@db.com')
@@ -321,11 +322,12 @@ print(wfa.get_placement_solution())
 #    'operation':   'create',
 #    'std_name':    wfa.std_name
 # }
-
-# awx_srvr = awx(args.awx_host, args.awx_template_name,  { 'user': args.awx_user, 'password': args.awx_password})
-# awx_srvr.launch_job()
-# awx_srvr.wait4job()
-
-# print(awx_srvr.get_job())
+extra_vars = wfa.get_placement_solution()
+print(extra_vars)
+print("#####################################")
+awx_srvr = awx(args.awx_host, args.awx_template_name,  { 'user': args.awx_user, 'password': args.awx_password }, extra_vars)
+awx_srvr.launch_job()
+awx_srvr.wait4job()
+print(awx_srvr.get_job())
 
 

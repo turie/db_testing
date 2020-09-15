@@ -12,9 +12,9 @@ services:
   nas_provision:
     create:
       microservices:
-        - ontap_disks
-        - ontap_aggr
-        - ontap_vserver
+        # - ontap_disks
+        # - ontap_aggr
+        # - ontap_vserver
         - ontap_volume
         - ontap_qtree
         - ontap_quotas

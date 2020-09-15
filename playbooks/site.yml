@@ -51,9 +51,6 @@
       loop:     "{{ raw_service_request.req_details.keys() | list }}"    
       loop_control:
         loop_var:     loop_res_type
-      
-    - debug:
-        var:  global_completed_request
 
     - name:    'execute each of the provisioning roles'
       include_role:

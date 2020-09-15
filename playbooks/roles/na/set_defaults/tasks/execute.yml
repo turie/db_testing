@@ -10,6 +10,14 @@
     temp: []
 
 - debug:
+    msg:
+      - "loop_res_type={{loop_res_type}}"
+      - "res_type={{ res_type }}"
+      - "service={{ service }}"
+      - "operation={{ operation }}"
+      - "resources={{ resources }}"
+
+- debug:
     var:  services[service][operation]['defaults'][res_type]
   loop:    "{{ resources }}"
   loop_control:
